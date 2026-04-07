@@ -18,6 +18,14 @@ class TaskResponse(TaskBase):
     id: str = Field(alias="_id")
     created_at: datetime
     completion_count: int = 0
+    # Include optional task-specific fields
+    survey_url: Optional[str] = None
+    video_url: Optional[str] = None
+    social_platform: Optional[str] = None
+    social_action: Optional[str] = None
+    social_url: Optional[str] = None
+    data_entry_prompt: Optional[str] = None
+    quiz_questions: Optional[List[dict]] = None
 
     class Config:
         populate_by_name = True
