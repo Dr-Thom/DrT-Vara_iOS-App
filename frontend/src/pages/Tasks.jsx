@@ -21,7 +21,7 @@ const Tasks = () => {
   const fetchTasks = async () => {
     try {
       const response = await axios.get(
-        `${API_CONFIG.BACKEND_URL}/api/tasks`,
+        `${API_CONFIG.BACKEND_URL}/api/tasks/`,
         { withCredentials: true }
       );
       setTasks(response.data);
