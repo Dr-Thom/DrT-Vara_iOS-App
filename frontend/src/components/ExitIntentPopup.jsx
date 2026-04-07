@@ -12,8 +12,7 @@ import { Badge } from './ui/badge';
 import { X, Sparkles, Clock, TrendingUp, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import API_CONFIG from '../config/api';
 
 const ExitIntentPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -80,7 +79,7 @@ const ExitIntentPopup = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/waitlist`, {
+      const response = await axios.post(`${API_CONFIG.BACKEND_URL}${API_CONFIG.ENDPOINTS.WAITLIST}`, {
         email: email,
         source: 'exit_popup',
         bonusType: 'early_access' // $3 bonus for exit popup

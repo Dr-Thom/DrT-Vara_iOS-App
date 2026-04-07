@@ -5,8 +5,7 @@ import { Card, CardContent } from './ui/card';
 import { Mail, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import API_CONFIG from '../config/api';
 
 const WaitlistForm = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +24,10 @@ const WaitlistForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/waitlist`, {
+      const apiUrl = `${API_CONFIG.BACKEND_URL}${API_CONFIG.ENDPOINTS.WAITLIST}`;
+      console.log('Submitting to:', apiUrl); // Debug log
+      
+      const response = await axios.post(apiUrl, {
         email: email,
         source: 'main_form'
       });
