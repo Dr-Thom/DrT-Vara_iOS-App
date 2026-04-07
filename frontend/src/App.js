@@ -28,23 +28,11 @@ import Tasks from './pages/Tasks';
 import Withdrawal from './pages/Withdrawal';
 
 const LandingPage = () => {
-  const handleGetStarted = () => {
-    const waitlistSection = document.querySelector('#waitlist');
-    if (waitlistSection) {
-      waitlistSection.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      const howItWorksSection = document.querySelector('#how-it-works');
-      if (howItWorksSection) {
-        howItWorksSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
-
   return (
     <>
-      <Header onGetStarted={handleGetStarted} />
+      <Header />
       <main>
-        <Hero onGetStarted={handleGetStarted} />
+        <Hero />
         <HowItWorks />
         <BonusExplained />
         <SocialProof />

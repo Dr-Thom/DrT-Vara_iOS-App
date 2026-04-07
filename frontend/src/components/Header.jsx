@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Header = ({ onGetStarted }) => {
+const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navLinks = [
     { label: 'How It Works', href: '#how-it-works' },
@@ -50,10 +52,10 @@ const Header = ({ onGetStarted }) => {
           {/* Desktop CTA */}
           <div className="hidden md:block">
             <Button
-              onClick={onGetStarted}
+              onClick={() => navigate('/signup')}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
             >
-              Get Started
+              Start Earning
             </Button>
           </div>
 

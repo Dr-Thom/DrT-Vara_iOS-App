@@ -3,9 +3,11 @@ import { heroData, statsData } from '../data/mock';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Hero = ({ onGetStarted }) => {
+const Hero = () => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -46,11 +48,11 @@ const Hero = ({ onGetStarted }) => {
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                onClick={onGetStarted}
+                onClick={() => navigate('/signup')}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
               >
-                {heroData.ctaText}
+                Start Earning Now
                 <ArrowRight className={`ml-2 w-5 h-5 transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`} />
               </Button>
               
