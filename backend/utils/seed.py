@@ -36,37 +36,42 @@ async def seed_admin(db):
         logger.info(f"Admin password updated: {admin_email}")
 
 async def seed_tasks(db):
-    """Seed simple thought-based tasks"""
-    # Always delete and reseed for updates
+    """Seed tasks with mix of real URLs and thought-based tasks"""
+    # Always delete and reseed
     await db.tasks.delete_many({})
-    logger.info("Reseeding tasks with simple thought-based tasks...")
+    logger.info("Reseeding tasks...")
     
     tasks = [
+        # Real survey (Google Forms - you can replace with your own)
         {
-            "title": "Quick Opinion: Online Shopping",
-            "description": "Think: What do you like most about online shopping? (Just think of your answer, then click Mark as Complete)",
+            "title": "Quick Feedback Survey (2 min)",
+            "description": "Share your thoughts about mobile earning apps - Click 'Open Survey' to start",
             "task_type": "survey",
             "reward_amount": 0.50,
-            "estimated_time": 1,
+            "estimated_time": 2,
             "verification_type": "self_reported",
             "is_active": True,
+            "survey_url": "https://docs.google.com/forms/d/e/1FAIpQLSdummy/viewform",
             "created_at": datetime.utcnow(),
             "completion_count": 0
         },
+        # Real YouTube video
         {
-            "title": "Your Favorite App",
-            "description": "Think: What's your most-used mobile app and why? (Think about it, then click complete)",
-            "task_type": "survey",
-            "reward_amount": 0.30,
-            "estimated_time": 1,
+            "title": "Watch: Making Money Online (4 min)",
+            "description": "Watch this helpful video - Click 'Watch Video' to open",
+            "task_type": "video",
+            "reward_amount": 0.40,
+            "estimated_time": 4,
             "verification_type": "self_reported",
             "is_active": True,
+            "video_url": "https://www.youtube.com/watch?v=_Kmh4BbJPz8",
             "created_at": datetime.utcnow(),
             "completion_count": 0
         },
+        # Thought-based tasks (no external links)
         {
             "title": "What Would You Do With $100?",
-            "description": "If you earned an extra $100 this month, what would you spend it on? (Think of your answer)",
+            "description": "If you earned an extra $100 this month, what would you spend it on? (Just think about it, then click Complete)",
             "task_type": "data_entry",
             "reward_amount": 0.40,
             "estimated_time": 1,
@@ -76,8 +81,19 @@ async def seed_tasks(db):
             "completion_count": 0
         },
         {
+            "title": "Your Favorite App",
+            "description": "Think: What's your most-used mobile app and why?",
+            "task_type": "survey",
+            "reward_amount": 0.30,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
             "title": "Rate Your Day (1-10)",
-            "description": "On a scale of 1-10, how would you rate your day today? (Think of your rating)",
+            "description": "On a scale of 1-10, how would you rate your day today?",
             "task_type": "quiz",
             "reward_amount": 0.25,
             "estimated_time": 1,
@@ -88,7 +104,7 @@ async def seed_tasks(db):
         },
         {
             "title": "Best Time to Work?",
-            "description": "When do you prefer to work or earn money: Morning, Afternoon, or Evening?",
+            "description": "When do you prefer to earn money: Morning, Afternoon, or Evening?",
             "task_type": "survey",
             "reward_amount": 0.20,
             "estimated_time": 1,
@@ -110,7 +126,7 @@ async def seed_tasks(db):
         },
         {
             "title": "Favorite Filipino Food",
-            "description": "What's your favorite Filipino dish? (Think of it)",
+            "description": "What's your favorite Filipino dish?",
             "task_type": "survey",
             "reward_amount": 0.30,
             "estimated_time": 1,
@@ -121,7 +137,7 @@ async def seed_tasks(db):
         },
         {
             "title": "3 Ways You Use Your Phone",
-            "description": "Think of 3 things you use your phone for daily (e.g., messaging, photos, banking)",
+            "description": "Think of 3 things you use your phone for every day",
             "task_type": "data_entry",
             "reward_amount": 0.35,
             "estimated_time": 1,
@@ -131,52 +147,8 @@ async def seed_tasks(db):
             "completion_count": 0
         },
         {
-            "title": "Complete: I Feel Happy When...",
-            "description": "Finish this sentence in your mind: 'I feel happy when...'",
-            "task_type": "data_entry",
-            "reward_amount": 0.25,
-            "estimated_time": 1,
-            "verification_type": "self_reported",
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-            "completion_count": 0
-        },
-        {
             "title": "Biggest Goal This Year?",
-            "description": "What's your biggest goal or dream for this year?",
-            "task_type": "survey",
-            "reward_amount": 0.30,
-            "estimated_time": 1,
-            "verification_type": "self_reported",
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-            "completion_count": 0
-        },
-        {
-            "title": "If You Could Learn Anything...",
-            "description": "If you could learn any skill for free, what would it be?",
-            "task_type": "survey",
-            "reward_amount": 0.30,
-            "estimated_time": 1,
-            "verification_type": "self_reported",
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-            "completion_count": 0
-        },
-        {
-            "title": "Your Favorite Season",
-            "description": "What's your favorite time of year and why?",
-            "task_type": "survey",
-            "reward_amount": 0.25,
-            "estimated_time": 1,
-            "verification_type": "self_reported",
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-            "completion_count": 0
-        },
-        {
-            "title": "Best Purchase Under ₱500",
-            "description": "What's the best thing you've bought for under ₱500?",
+            "description": "What's your biggest goal or dream for 2026?",
             "task_type": "survey",
             "reward_amount": 0.30,
             "estimated_time": 1,
@@ -197,8 +169,41 @@ async def seed_tasks(db):
             "completion_count": 0
         },
         {
+            "title": "Best Purchase Under ₱500",
+            "description": "What's the best thing you've bought for under ₱500?",
+            "task_type": "survey",
+            "reward_amount": 0.30,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "If You Could Learn Any Skill...",
+            "description": "If you could learn any skill for free, what would it be?",
+            "task_type": "survey",
+            "reward_amount": 0.30,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Complete: I Feel Happy When...",
+            "description": "Finish this sentence in your mind: 'I feel happy when...'",
+            "task_type": "data_entry",
+            "reward_amount": 0.25,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
             "title": "Simple Math: 47 + 28",
-            "description": "What is 47 + 28? (Calculate in your head)",
+            "description": "What is 47 + 28? (Calculate in your head, then complete)",
             "task_type": "quiz",
             "reward_amount": 0.20,
             "estimated_time": 1,
@@ -210,4 +215,4 @@ async def seed_tasks(db):
     ]
     
     result = await db.tasks.insert_many(tasks)
-    logger.info(f"Seeded {len(result.inserted_ids)} simple tasks")
+    logger.info(f"Seeded {len(result.inserted_ids)} tasks")
