@@ -38,10 +38,29 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-green-600">
-              ${(user?.earnings || 0).toFixed(2)}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Earned:</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  ${(user?.total_earned || 0).toFixed(2)} USD
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Withdrawn:</span>
+                <span className="text-lg font-semibold text-red-600">
+                  -${(user?.total_withdrawn || 0).toFixed(2)} USD
+                </span>
+              </div>
+              <div className="border-t border-green-300 pt-2 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">Balance:</span>
+                  <span className="text-2xl font-bold text-green-600">
+                    ${(user?.earnings || 0).toFixed(2)} USD
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">≈ ₱{((user?.earnings || 0) * 55).toFixed(2)} PHP</p>
             </div>
-            <p className="text-sm text-gray-600 mt-2">≈ ₱{((user?.earnings || 0) * 55).toFixed(2)} PHP</p>
           </CardContent>
         </Card>
 
@@ -71,7 +90,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className={`text-4xl font-bold ${user?.bonus_unlocked ? 'text-yellow-600' : 'text-purple-600'}`}>
-              {user?.bonus_unlocked ? '✓ $2' : '$2'}
+              {user?.bonus_unlocked ? '✓ $2 USD' : '$2 USD'}
             </div>
             <p className="text-sm text-gray-600 mt-2">
               {user?.bonus_unlocked ? 'Unlocked!' : 'Pending'}

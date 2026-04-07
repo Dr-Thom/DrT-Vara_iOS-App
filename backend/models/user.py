@@ -33,7 +33,9 @@ class UserDB(BaseModel):
     password_hash: str
     name: Optional[str] = None
     role: str = "user"
-    earnings: float = 0.0
+    earnings: float = 0.0  # Current balance
+    total_earned: float = 0.0  # Lifetime earnings
+    total_withdrawn: float = 0.0  # Lifetime withdrawals
     tasks_completed: int = 0
     bonus_unlocked: bool = False
     completed_task_ids: List[str] = []

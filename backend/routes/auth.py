@@ -103,6 +103,8 @@ async def register(user_data: UserCreate, response: Response):
             "name": user_doc.name,
             "role": user_doc.role,
             "earnings": user_doc.earnings,
+            "total_earned": user_doc.total_earned,
+            "total_withdrawn": user_doc.total_withdrawn,
             "tasks_completed": user_doc.tasks_completed,
             "bonus_unlocked": user_doc.bonus_unlocked
         }
@@ -163,6 +165,8 @@ async def login(credentials: UserLogin, response: Response):
             "name": user.get("name"),
             "role": user.get("role", "user"),
             "earnings": user.get("earnings", 0.0),
+            "total_earned": user.get("total_earned", 0.0),
+            "total_withdrawn": user.get("total_withdrawn", 0.0),
             "tasks_completed": user.get("tasks_completed", 0),
             "bonus_unlocked": user.get("bonus_unlocked", False)
         }

@@ -74,10 +74,15 @@ async def request_withdrawal(
             {"$set": {"status": "approved", "processed_at": datetime.utcnow()}}
         )
         
-        # Deduct from user balance
+        # Deduct from user balance and track withdrawal
         await db.users.update_one(
             {"_id": user_id},
-            {"$inc": {"earnings": -withdrawal.amount}}
+            {
+                "$inc": {
+                    "earnings": -withdrawal.amount,
+                    "total_withdrawn": withdrawal.amount
+                }
+            }
         )
         
         logger.info(f"User {user['email']} requested withdrawal of ${withdrawal.amount} via {withdrawal.method}")

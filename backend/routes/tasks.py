@@ -115,6 +115,7 @@ async def complete_task(
             {
                 "$set": {
                     "earnings": new_earnings,
+                    "total_earned": user.get("total_earned", 0.0) + reward + (BONUS_AMOUNT if (bonus_unlocked and not user.get("bonus_unlocked")) else 0),
                     "tasks_completed": new_tasks_completed,
                     "bonus_unlocked": bonus_unlocked
                 },
