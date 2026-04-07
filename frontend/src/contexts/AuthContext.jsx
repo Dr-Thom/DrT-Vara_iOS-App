@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
       );
       setUser(response.data);
     } catch (error) {
-      setUser(false);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    setUser(false);
+    setUser(null);
   };
 
   const refreshUser = async () => {

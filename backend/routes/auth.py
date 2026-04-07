@@ -76,11 +76,14 @@ async def register(user_data: UserCreate, response: Response):
         refresh_token = create_refresh_token(user_id)
         
         # Set httpOnly cookies
+        # Use secure cookies in production/preview (HTTPS), insecure only in local development
+        is_secure = os.environ.get('ENVIRONMENT', 'production') != 'development'
+        
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=False,
+            secure=is_secure,
             samesite="lax",
             max_age=900,  # 15 minutes
             path="/"
@@ -89,7 +92,7 @@ async def register(user_data: UserCreate, response: Response):
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=False,
+            secure=is_secure,
             samesite="lax",
             max_age=604800,  # 7 days
             path="/"
@@ -138,11 +141,14 @@ async def login(credentials: UserLogin, response: Response):
         refresh_token = create_refresh_token(user_id)
         
         # Set httpOnly cookies
+        # Use secure cookies in production/preview (HTTPS), insecure only in local development
+        is_secure = os.environ.get('ENVIRONMENT', 'production') != 'development'
+        
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=False,
+            secure=is_secure,
             samesite="lax",
             max_age=900,
             path="/"
@@ -151,7 +157,7 @@ async def login(credentials: UserLogin, response: Response):
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=False,
+            secure=is_secure,
             samesite="lax",
             max_age=604800,
             path="/"
@@ -208,11 +214,14 @@ async def refresh(request: Request, response: Response):
     # Create new access token
     access_token = create_access_token(user_id, user["email"])
     
+    # Use secure cookies in production/preview (HTTPS), insecure only in local development
+    is_secure = os.environ.get('ENVIRONMENT', 'production') != 'development'
+    
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
+        secure=is_secure,
         samesite="lax",
         max_age=900,
         path="/"
