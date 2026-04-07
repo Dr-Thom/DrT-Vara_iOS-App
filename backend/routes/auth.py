@@ -85,7 +85,7 @@ async def register(user_data: UserCreate, response: Response):
             httponly=True,
             secure=is_secure,
             samesite="lax",
-            max_age=900,  # 15 minutes
+            max_age=14400,  # 4 hours
             path="/"
         )
         response.set_cookie(
