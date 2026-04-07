@@ -11,6 +11,9 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { X, Sparkles, Clock, TrendingUp, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ExitIntentPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -76,13 +79,33 @@ const ExitIntentPopup = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/waitlist`, {
+        email: email,
+        source: 'exit_popup',
+        bonusType: 'early_access' // $3 bonus for exit popup
+      });
+
+      if (response.data.success) {
+        toast.success(`🎉 ${response.data.message} You're #${response.data.data.position} on the waitlist!`);
+        setIsOpen(false);
+        setEmail('');
+      } else {
+        toast.error(response.data.message || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      console.error('Exit popup submission error:', error);
+      
+      if (error.response?.status === 429) {
+        toast.error('Too many requests. Please try again later.');
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Connection issue. Please try again.');
+      }
+    } finally {
       setIsSubmitting(false);
-      toast.success('🎉 Exclusive $3 bonus locked in! Check your email for details.');
-      setIsOpen(false);
-      setEmail('');
-    }, 1500);
+    }
   };
 
   const handleClose = () => {

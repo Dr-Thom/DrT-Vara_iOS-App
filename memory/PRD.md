@@ -4,8 +4,8 @@
 Build a landing page for VARA - an app where users can earn USD from their phone by completing simple tasks. The landing page must clearly showcase the $2 USD bonus offer and convert visitors into waitlist signups.
 
 **Key Message:**
-- Headline: "Earn USD From Your Phone + Unlock a $2 USD Bonus"
-- Sub: "Complete simple tasks and unlock your $2 USD reward after your first 5 tasks"
+- Headline: "Earn $2 USD in 30 Minutes From Your Phone"
+- Sub: "Complete 5 simple tasks. No experience needed. Withdraw instantly."
 
 **Target Audience:** Phase 1 - Philippines
 
@@ -22,151 +22,219 @@ Build a landing page for VARA - an app where users can earn USD from their phone
    - Tech-savvy, uses mobile apps daily
    - Needs: Transparency, good user experience, immediate rewards
 
-## Core Requirements (Static)
-### Design Requirements
-- Trustworthy vibe with modern gradient style and animations
-- Conversion-optimized layout with psychological triggers
+## What's Been Implemented
+
+### ✅ Phase 1: Frontend Landing Page with Mock Data (Completed - Dec 7, 2025)
+- All conversion-optimized sections (Hero, How It Works, Bonus, Social Proof, Waitlist, FAQ, Footer)
+- Exit-intent popup with $3 bonus offer
+- PHP currency conversions for Philippines market
 - Mobile-responsive design
-- Agency-quality aesthetics ($20,000+ level)
-- Light gradients only (following 80/20 rule - max 20% gradient coverage)
-- No dark purple/pink gradients
-- Micro-animations on all interactions
+- All psychological triggers implemented
 
-### Required Sections
-1. ✅ Hero Section (with $2 bonus prominently displayed above the fold)
-2. ✅ How It Works (4-step process)
-3. ✅ Bonus Explanation (detailed breakdown)
-4. ✅ Social Proof (testimonials with real earnings)
-5. ✅ Email Waitlist Form
-6. ✅ App Store Badges Section (Coming Soon - Jan 2026)
-7. ✅ FAQ Section
-8. ✅ Footer with links and contact info
+### 🔄 Phase 2: Backend Development (In Progress)
 
-### Technical Requirements
-- React frontend with Shadcn UI components
-- Mock data implementation (frontend-only for phase 1)
-- Smooth scroll behavior
-- Toast notifications for form submissions
-- Fixed header with navigation
+## Backend API Contracts
 
-## What's Been Implemented (December 2025)
+### 1. POST /api/waitlist
+**Purpose:** Collect email addresses for waitlist signup
 
-### ✅ Phase 1: Frontend Landing Page with Mock Data (Completed)
-
-**Date: December 7, 2025**
-
-#### Components Created:
-1. **Header.jsx** - Fixed navigation with smooth scroll to sections
-2. **Hero.jsx** - Main hero section with animated background, bonus badge, CTA buttons, and floating bonus card
-3. **HowItWorks.jsx** - 4-step process cards with icons and animations
-4. **BonusExplained.jsx** - Detailed bonus breakdown with visual card and feature list
-5. **SocialProof.jsx** - 3 testimonial cards with user avatars, ratings, and total earnings
-6. **WaitlistForm.jsx** - Email capture form with success states and toast notifications
-7. **AppStoreSection.jsx** - App store buttons (disabled, coming soon)
-8. **FAQ.jsx** - Accordion-style FAQ using Shadcn accordion component
-9. **Footer.jsx** - Complete footer with links, social icons, and contact info
-
-#### Data Layer:
-- **mock.js** - All mock data including hero content, stats, testimonials, FAQ, task types
-
-#### Styling:
-- Custom animations: blob, float
-- Inter font family (Google Fonts)
-- Smooth transitions on all interactive elements
-- Mobile-responsive breakpoints
-- Blue/Green color scheme for trust (avoiding prohibited gradients)
-
-#### Features:
-- Smooth scroll navigation
-- Toast notifications (using Sonner)
-- Hover animations and micro-interactions
-- Mobile hamburger menu
-- Form validation
-- Responsive grid layouts (proper 2x2, 3x1 layouts)
-
-#### Images Used:
-- Hero: Mobile earning image from Unsplash
-- Testimonials: 3 diverse user photos
-- All images optimized and relevant to Philippines market
-
-## Prioritized Backlog
-
-### P0 Features (Must Have - Next Phase)
-- [ ] Backend API setup (FastAPI)
-- [ ] MongoDB database models
-- [ ] Email collection API endpoint
-- [ ] Email service integration (SendGrid/MailChimp)
-- [ ] Analytics tracking (Google Analytics/Mixpanel)
-
-### P1 Features (Should Have)
-- [ ] Contact form functionality
-- [ ] Admin dashboard for waitlist management
-- [ ] Email notification system for waitlist users
-- [ ] Social media sharing functionality
-- [ ] SEO optimization (meta tags, Open Graph)
-- [ ] Performance optimization (lazy loading images)
-
-### P2 Features (Nice to Have)
-- [ ] Multi-language support (English/Tagalog)
-- [ ] A/B testing for different messaging
-- [ ] Video explainer section
-- [ ] Live chat support widget
-- [ ] Blog section for content marketing
-- [ ] Referral program landing page
-
-## Next Action Items
-
-### Immediate Next Steps:
-1. **User Review & Feedback** - Get user approval on current design and functionality
-2. **Backend Development** (if approved):
-   - Create waitlist email collection API
-   - Set up MongoDB model for email storage
-   - Integrate email service provider
-   - Add basic analytics tracking
-3. **Testing** - Run full testing suite once backend is added
-4. **SEO Setup** - Add meta tags, sitemap, robots.txt
-5. **Launch Preparation** - Domain setup, hosting configuration
-
-### Enhancement Opportunities:
-- **Conversion Boost**: Add exit-intent popup with special early bird bonus ($3 instead of $2)
-- **Social Proof**: Display live counter of waitlist signups to create FOMO
-- **Trust Building**: Add "As Featured In" section with media logos
-- **Engagement**: Add countdown timer to launch date
-
-## API Contracts (For Future Backend)
-
-### POST /api/waitlist
 **Request:**
 ```json
 {
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "source": "exit_popup" // optional: "main_form", "exit_popup", "hero_cta"
 }
 ```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Successfully joined the waitlist!",
+  "data": {
+    "email": "user@example.com",
+    "position": 12544,
+    "bonusType": "standard" // "standard" ($2) or "early_access" ($3)
+  }
+}
+```
+
+**Response (Already Exists):**
+```json
+{
+  "success": true,
+  "message": "You're already on the waitlist!",
+  "data": {
+    "email": "user@example.com",
+    "position": 12543
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "Invalid email address",
+  "error": "INVALID_EMAIL"
+}
+```
+
+### 2. GET /api/waitlist/stats
+**Purpose:** Get current waitlist statistics (for display on landing page)
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "Successfully joined waitlist",
-  "position": 12543
+  "data": {
+    "totalSignups": 12543,
+    "todaySignups": 234,
+    "avgSignupsPerDay": 150
+  }
 }
 ```
 
-### GET /api/stats
+### 3. GET /api/health
+**Purpose:** Health check endpoint
+
 **Response:**
 ```json
 {
-  "totalUsers": 50000,
-  "totalEarned": "$500K+",
-  "tasksCompleted": "1M+",
-  "avgRating": 4.8,
-  "waitlistCount": 12543
+  "status": "healthy",
+  "timestamp": "2025-12-07T10:30:00Z"
 }
 ```
 
+## Database Models
+
+### WaitlistEntry
+```python
+{
+  "_id": ObjectId,
+  "email": String (unique, required),
+  "source": String (optional: "main_form", "exit_popup", "hero_cta"),
+  "bonusType": String ("standard" or "early_access"),
+  "position": Integer,
+  "createdAt": DateTime,
+  "updatedAt": DateTime,
+  "ipAddress": String (optional),
+  "userAgent": String (optional)
+}
+```
+
+### Indexes
+- email: unique index
+- createdAt: for sorting and analytics
+- source: for conversion tracking
+
+## Frontend-Backend Integration Plan
+
+### Mock Data to Remove:
+- `/app/frontend/src/data/mock.js` - Keep for hero/static content, remove for dynamic data
+
+### Components to Update:
+1. **WaitlistForm.jsx**
+   - Replace mock API call with real POST /api/waitlist
+   - Handle real success/error responses
+   - Show actual waitlist position
+
+2. **ExitIntentPopup.jsx**
+   - Replace mock API call with real POST /api/waitlist
+   - Pass source: "exit_popup"
+   - Handle real responses
+
+3. **Stats Display** (if we add dynamic stats)
+   - Fetch from GET /api/waitlist/stats
+   - Update in real-time
+
+## Implementation Checklist
+
+### Backend Tasks:
+- [ ] Create WaitlistEntry MongoDB model
+- [ ] Implement POST /api/waitlist endpoint
+  - [ ] Email validation
+  - [ ] Duplicate check
+  - [ ] Position calculation
+  - [ ] Database insertion
+- [ ] Implement GET /api/waitlist/stats endpoint
+- [ ] Implement GET /api/health endpoint
+- [ ] Add error handling and logging
+- [ ] Test all endpoints
+
+### Frontend Integration:
+- [ ] Update WaitlistForm to use real API
+- [ ] Update ExitIntentPopup to use real API
+- [ ] Add error handling UI
+- [ ] Test form submissions
+- [ ] Test error scenarios
+
+### Testing:
+- [ ] Test email validation
+- [ ] Test duplicate email handling
+- [ ] Test successful signup flow
+- [ ] Test error scenarios
+- [ ] Test from multiple devices
+- [ ] Run testing_agent_v3 for full E2E testing
+
+## Error Scenarios to Handle
+
+1. **Invalid Email Format**
+   - Show: "Please enter a valid email address"
+
+2. **Duplicate Email**
+   - Show: "You're already on the waitlist! Check your email for updates."
+
+3. **Server Error**
+   - Show: "Oops! Something went wrong. Please try again."
+
+4. **Network Error**
+   - Show: "Connection issue. Please check your internet and try again."
+
+## Validation Rules
+
+### Email Validation:
+- Must contain @ symbol
+- Must have valid domain
+- Must not be a temporary/disposable email (optional)
+- Max length: 255 characters
+
+## Security Considerations
+
+1. **Rate Limiting:** Prevent spam submissions (max 3 per IP per hour)
+2. **CORS:** Already configured, verify it works
+3. **Input Sanitization:** Clean email input
+4. **SQL Injection:** Using MongoDB ORM prevents this
+5. **XSS:** React handles this automatically
+
+## Analytics to Track (Future)
+
+- Signup source (main_form vs exit_popup)
+- Conversion rate
+- Time on page before signup
+- Bounce rate
+- Device type (mobile vs desktop)
+
+## Next Steps After Backend
+
+1. **Email Integration** (Phase 3)
+   - Welcome email on signup
+   - Email verification (optional)
+   - Launch notification email
+
+2. **Admin Dashboard** (Phase 4)
+   - View all waitlist entries
+   - Export to CSV
+   - Analytics dashboard
+
+3. **Launch Preparation** (Phase 5)
+   - Domain setup
+   - SSL certificate
+   - Production deployment
+   - Performance optimization
+
 ## Notes
-- Frontend is fully functional with mock data
-- All interactive elements working (navigation, forms, animations)
-- Mobile-responsive and tested on multiple screen sizes
-- Ready for backend integration
-- Design follows all specified guidelines (no dark gradients, trustworthy colors, modern animations)
+- All mock data preserved for static content (testimonials, FAQ, features)
+- Only dynamic data (waitlist) connected to backend
+- Frontend already optimized for conversions
+- Backend focused on data collection and validation

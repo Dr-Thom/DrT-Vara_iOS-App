@@ -4,11 +4,15 @@ import { Input } from './ui/input';
 import { Card, CardContent } from './ui/card';
 import { Mail, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const WaitlistForm = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [position, setPosition] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,18 +24,44 @@ const WaitlistForm = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call with mock data
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      toast.success('Successfully joined the waitlist! Check your email for next steps.');
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/waitlist`, {
+        email: email,
+        source: 'main_form'
+      });
+
+      if (response.data.success) {
+        setIsSubmitted(true);
+        setPosition(response.data.data.position);
+        
+        if (response.data.message.includes('already')) {
+          toast.success(response.data.message);
+        } else {
+          toast.success(`🎉 ${response.data.message} You're #${response.data.data.position} on the waitlist!`);
+        }
+        
+        // Reset after 5 seconds
+        setTimeout(() => {
+          setEmail('');
+          setIsSubmitted(false);
+          setPosition(null);
+        }, 5000);
+      } else {
+        toast.error(response.data.message || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      console.error('Waitlist submission error:', error);
       
-      // Reset after 3 seconds
-      setTimeout(() => {
-        setEmail('');
-        setIsSubmitted(false);
-      }, 3000);
-    }, 1500);
+      if (error.response?.status === 429) {
+        toast.error('Too many requests. Please try again later.');
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Connection issue. Please check your internet and try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
