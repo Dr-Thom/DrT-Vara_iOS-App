@@ -69,6 +69,14 @@ const HowItWorks = () => {
           <p className="text-lg text-gray-600 mb-4">
             Ready to start earning? Join thousands of users already making money.
           </p>
+          
+          {/* High-impact reassurance */}
+          <div className="inline-block bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 rounded-xl px-8 py-4 mt-4">
+            <p className="text-lg font-bold text-gray-900 flex items-center gap-2 justify-center">
+              <span className="text-2xl">💡</span>
+              Most users complete their first 5 tasks in under 30 minutes
+            </p>
+          </div>
         </div>
       </div>
     </section>

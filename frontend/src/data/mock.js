@@ -9,9 +9,9 @@ export const heroData = {
 };
 
 export const statsData = [
-  { value: "50,000+", label: "Active Users" },
-  { value: "$500K+", label: "Total Earned" },
-  { value: "1M+", label: "Tasks Completed" },
+  { value: "Early Users", label: "Earning Daily" },
+  { value: "Fast", label: "Payouts Available" },
+  { value: "Growing", label: "Global Community" },
   { value: "4.8★", label: "User Rating" }
 ];
 
@@ -31,13 +31,13 @@ export const howItWorksSteps = [
   {
     step: 3,
     title: "Earn Your Bonus",
-    description: "Complete 5 tasks to unlock your $2 USD bonus instantly.",
+    description: "Complete 5 tasks to unlock your $2 USD bonus instantly. Most users unlock their bonus within 30 minutes.",
     icon: "Gift"
   },
   {
     step: 4,
     title: "Cash Out",
-    description: "Withdraw your earnings via GCash, PayPal, or bank transfer.",
+    description: "Withdraw your earnings via GCash, PayPal, or bank transfer. No minimum withdrawal for your bonus.",
     icon: "DollarSign"
   }
 ];
@@ -72,7 +72,7 @@ export const testimonials = [
     rating: 5,
     comment: "I earned my $2 bonus in just one day! The tasks are easy and payments are fast. Perfect for extra income.",
     avatar: "https://images.unsplash.com/photo-1739271933312-292e30c2c0b2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwzfHxwZW9wbGUlMjBzbWFydHBob25lJTIwaGFwcHl8ZW58MHx8fHwxNzc1NTY5ODMwfDA&ixlib=rb-4.1.0&q=85",
-    earnings: "$156"
+    earnings: "$156 USD (₱8,700+)"
   },
   {
     id: 2,
@@ -81,7 +81,7 @@ export const testimonials = [
     rating: 5,
     comment: "Finally, a legitimate way to earn USD from my phone. The bonus got me started and now I'm making steady income!",
     avatar: "https://images.unsplash.com/photo-1592169813474-dd0c8e52e3bf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwxfHxwZW9wbGUlMjBzbWFydHBob25lJTIwaGFwcHl8ZW58MHx8fHwxNzc1NTY5ODMwfDA&ixlib=rb-4.1.0&q=85",
-    earnings: "$284"
+    earnings: "$284 USD (₱15,800+)"
   },
   {
     id: 3,
@@ -90,7 +90,7 @@ export const testimonials = [
     rating: 5,
     comment: "Super easy to use! I complete tasks during my commute. The $2 bonus was just the beginning.",
     avatar: "https://images.unsplash.com/photo-1768244016593-8ca75b15bc92?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHw0fHxkaXZlcnNlJTIwcGVvcGxlJTIwY2VsZWJyYXRpbmclMjBwaG9uZXxlbnwwfHx8fDE3NzU1Njk4MzV8MA&ixlib=rb-4.1.0&q=85",
-    earnings: "$198"
+    earnings: "$198 USD (₱11,000+)"
   }
 ];
 

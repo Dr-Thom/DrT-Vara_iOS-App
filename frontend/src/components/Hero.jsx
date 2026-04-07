@@ -22,10 +22,10 @@ const Hero = ({ onGetStarted }) => {
           <div className="text-left space-y-8">
             {/* Bonus Badge */}
             <Badge 
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-sm font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 hover:scale-105"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-sm font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 hover:scale-105 animate-pulse"
             >
               <Sparkles className="w-4 h-4" />
-              Limited Time: {heroData.bonusAmount} Welcome Bonus
+              🔥 Only for First 1,000 Users — {heroData.bonusAmount} Bonus
             </Badge>
 
             {/* Main Headline */}
@@ -59,7 +59,7 @@ const Hero = ({ onGetStarted }) => {
                 variant="outline"
                 className="border-2 border-gray-300 text-gray-700 px-8 py-6 text-lg font-semibold hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300"
               >
-                Watch Demo
+                ▶️ Watch How You Earn $2 USD (1 min)
               </Button>
             </div>
 
@@ -71,8 +71,8 @@ const Hero = ({ onGetStarted }) => {
                 ))}
               </div>
               <div className="text-sm text-gray-600">
-                <p className="font-semibold text-gray-900">50,000+ happy users</p>
-                <p>earning daily from their phones</p>
+                <p className="font-semibold text-gray-900">Users in the Philippines</p>
+                <p>are already earning USD daily</p>
               </div>
             </div>
           </div>
@@ -92,6 +92,7 @@ const Hero = ({ onGetStarted }) => {
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Your Welcome Bonus</p>
                     <p className="text-3xl font-bold text-green-600">{heroData.bonusAmount}</p>
+                    <p className="text-lg font-semibold text-gray-700 mt-1">≈ ₱110+ PHP</p>
                   </div>
                   <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
                     <Sparkles className="w-8 h-8 text-white" />

@@ -13,6 +13,7 @@ import WaitlistForm from './components/WaitlistForm';
 import AppStoreSection from './components/AppStoreSection';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import ExitIntentPopup from './components/ExitIntentPopup';
 
 function App() {
   const handleGetStarted = () => {
@@ -46,6 +47,7 @@ function App() {
       </main>
 
       <Footer />
+      <ExitIntentPopup />
       <Toaster position="top-center" richColors />
     </div>
   );
