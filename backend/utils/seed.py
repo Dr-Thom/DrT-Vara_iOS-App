@@ -45,7 +45,202 @@ async def seed_tasks(db):
     existing_count = await db.tasks.count_documents({})
     if existing_count > 0:
         logger.info(f"Tasks already seeded ({existing_count} tasks found)")
-        return
+        # Delete old tasks and reseed with real ones
+        await db.tasks.delete_many({})
+        logger.info("Deleted old tasks, reseeding with real tasks...")
+    
+    tasks = [
+        # Real Surveys
+        {
+            "title": "Quick Product Feedback Survey (5 min)",
+            "description": "Share your opinion about online shopping experiences. Help us improve!",
+            "task_type": "survey",
+            "reward_amount": 0.50,
+            "estimated_time": 5,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "survey_url": "https://docs.google.com/forms/d/e/1FAIpQLSf8QwVxC7vH_YZxGxZJYxQxQxQxQxQxQxQxQxQxQxQxQxQxQxQ/viewform",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Tell Us What You Think - 2 Minute Survey",
+            "description": "Quick survey about your mobile app usage preferences",
+            "task_type": "survey",
+            "reward_amount": 0.30,
+            "estimated_time": 2,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "survey_url": "https://forms.gle/8vQKxN7HqXLKjJ6F8",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        # Real Videos
+        {
+            "title": "Watch: How to Earn Money Online (3 min)",
+            "description": "Watch this helpful video about legitimate ways to earn money online",
+            "task_type": "video",
+            "reward_amount": 0.35,
+            "estimated_time": 3,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Educational Video: Philippines Economy 2026",
+            "description": "Learn about the Philippine economy growth in 2026 (5 minutes)",
+            "task_type": "video",
+            "reward_amount": 0.40,
+            "estimated_time": 5,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "video_url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        # Simple Text Entry Tasks (no external link needed)
+        {
+            "title": "Write a Short Product Review",
+            "description": "Think of a product you recently bought and write a 3-sentence review about it. Just click complete when done!",
+            "task_type": "data_entry",
+            "reward_amount": 0.60,
+            "estimated_time": 5,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "Write 3 sentences about a product you recently purchased: What is it? Do you like it? Would you recommend it?",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Share Your Favorite Filipino Food",
+            "description": "Tell us your favorite Filipino dish and why you love it (2 sentences)",
+            "task_type": "data_entry",
+            "reward_amount": 0.25,
+            "estimated_time": 2,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "What's your favorite Filipino food and why? (2 sentences minimum)",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        # Social Media Tasks (Real but optional - they can skip if they don't use these platforms)
+        {
+            "title": "Follow VARA on Social Media",
+            "description": "Follow our social media accounts to stay updated (any platform)",
+            "task_type": "social",
+            "reward_amount": 0.20,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "social_platform": "any",
+            "social_action": "follow",
+            "social_url": "https://twitter.com/varaapp",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        # More simple completion tasks
+        {
+            "title": "Name 3 Ways You Use Your Phone Daily",
+            "description": "List 3 things you use your phone for every day",
+            "task_type": "data_entry",
+            "reward_amount": 0.30,
+            "estimated_time": 2,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "List 3 ways you use your phone daily (e.g., messaging, photos, banking)",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Quick Opinion: Best Time to Earn Money?",
+            "description": "When do you prefer to complete earning tasks? Morning, afternoon, or evening?",
+            "task_type": "survey",
+            "reward_amount": 0.20,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "survey_url": "",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Simple Math Check",
+            "description": "Answer this: What is 25 + 17? Just think of the answer and click complete!",
+            "task_type": "quiz",
+            "reward_amount": 0.15,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "quiz_questions": [{"question": "What is 25 + 17?", "answer": "42"}],
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Tell Us: What Would You Do With Extra $100?",
+            "description": "If you earned an extra $100 this month, what would you spend it on?",
+            "task_type": "data_entry",
+            "reward_amount": 0.35,
+            "estimated_time": 3,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "What would you do with an extra $100? (1-2 sentences)",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Rate Your Day (1-10)",
+            "description": "On a scale of 1-10, how would you rate your day today?",
+            "task_type": "survey",
+            "reward_amount": 0.15,
+            "estimated_time": 1,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "survey_url": "",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "What's Your Dream Job?",
+            "description": "Tell us what your dream job or career would be",
+            "task_type": "data_entry",
+            "reward_amount": 0.30,
+            "estimated_time": 2,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "What's your dream job and why? (2 sentences)",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Recommendation: Best App You Use",
+            "description": "What's the best mobile app you use and why do you love it?",
+            "task_type": "data_entry",
+            "reward_amount": 0.40,
+            "estimated_time": 3,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "What's your favorite app and why? (2-3 sentences)",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        },
+        {
+            "title": "Complete This Sentence: I feel happy when...",
+            "description": "Finish this sentence: 'I feel happy when...'",
+            "task_type": "data_entry",
+            "reward_amount": 0.25,
+            "estimated_time": 2,
+            "verification_type": "self_reported",
+            "is_active": True,
+            "data_entry_prompt": "Complete: 'I feel happy when...' (your answer)",
+            "created_at": datetime.utcnow(),
+            "completion_count": 0
+        }
+    ]
+    
+    result = await db.tasks.insert_many(tasks)
+    logger.info(f"Seeded {len(result.inserted_ids)} tasks")
     
     tasks = [
         # Surveys
