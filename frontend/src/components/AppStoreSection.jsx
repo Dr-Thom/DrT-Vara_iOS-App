@@ -18,7 +18,7 @@ const AppStoreSection = () => {
               {/* Coming Soon Badge */}
               {appStoreLinks.comingSoon && (
                 <Badge className="inline-flex px-4 py-2 bg-green-500 text-white border-0 text-sm font-semibold">
-                  Coming Soon - January 2026
+                  Coming Soon - May 2026
                 </Badge>
               )}
 

@@ -138,7 +138,7 @@ const WaitlistForm = () => {
                 <p className="text-sm text-blue-100">On Waitlist</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">Jan 2026</p>
+                <p className="text-2xl font-bold">May 2026</p>
                 <p className="text-sm text-blue-100">Launch Date</p>
               </div>
               <div className="text-center">
