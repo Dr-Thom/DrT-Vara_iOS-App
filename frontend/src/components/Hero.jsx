@@ -30,15 +30,15 @@ const Hero = ({ onGetStarted }) => {
 
             {/* Main Headline */}
             <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
-              {heroData.headline.split('+')[0]}
+              Earn $2 USD in 30 Minutes{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
-                + {heroData.headline.split('+')[1]}
+                From Your Phone
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-xl text-gray-600 leading-relaxed">
-              {heroData.subheadline}
+              Complete 5 simple tasks. No experience needed. Withdraw instantly.
             </p>
 
             {/* CTA Buttons */}
