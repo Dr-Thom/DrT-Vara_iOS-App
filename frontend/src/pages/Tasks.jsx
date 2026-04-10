@@ -7,12 +7,15 @@ import { Clock, DollarSign, CheckCircle2, Loader2, ExternalLink } from 'lucide-r
 import { toast } from 'sonner';
 import axios from 'axios';
 import API_CONFIG from '../config/api';
+import BonusCelebration from '../components/BonusCelebration';
 
 const Tasks = () => {
   const { user, refreshUser } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [completingTaskId, setCompletingTaskId] = useState(null);
+  const [showBonusCelebration, setShowBonusCelebration] = useState(false);
+  const [bonusAmount, setBonusAmount] = useState(1.0);
 
   useEffect(() => {
     fetchTasks();
@@ -46,17 +49,19 @@ const Tasks = () => {
       if (response.data.success) {
         toast.success(response.data.message);
         
+        // Check if bonus was just unlocked
+        const justUnlockedBonus = response.data.bonus_unlocked && !user?.bonus_unlocked;
+        
         // Refresh user data and tasks list
         await refreshUser();
         await fetchTasks();
         
-        // Show bonus celebration if unlocked
-        if (response.data.bonus_unlocked && !user?.bonus_unlocked) {
+        // Show bonus celebration modal if unlocked
+        if (justUnlockedBonus) {
+          setBonusAmount(response.data.reward_earned - (tasks.find(t => t._id === taskId)?.reward_amount || 0));
           setTimeout(() => {
-            toast.success('🎉 Congratulations! You unlocked your $2 USD bonus!', {
-              duration: 5000
-            });
-          }, 1000);
+            setShowBonusCelebration(true);
+          }, 500);
         }
       }
     } catch (error) {
@@ -213,6 +218,13 @@ const Tasks = () => {
           ))}
         </div>
       )}
+
+      {/* Bonus Celebration Modal */}
+      <BonusCelebration 
+        isOpen={showBonusCelebration}
+        onClose={() => setShowBonusCelebration(false)}
+        bonusAmount={bonusAmount}
+      />
     </div>
   );
 };

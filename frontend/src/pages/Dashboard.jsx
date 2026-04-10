@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { DollarSign, CheckCircle, Gift, TrendingUp, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BonusCelebration from '../components/BonusCelebration';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showBonusCelebration, setShowBonusCelebration] = useState(false);
 
-  const tasksRemaining = Math.max(0, 5 - (user?.tasks_completed || 0));
-  const bonusProgress = Math.min(100, ((user?.tasks_completed || 0) / 5) * 100);
+  const tasksRemaining = Math.max(0, 10 - (user?.tasks_completed || 0));
+  const bonusProgress = Math.min(100, ((user?.tasks_completed || 0) / 10) * 100);
 
   return (
     <div className="space-y-6">
@@ -105,13 +107,13 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-600" />
-              Progress to $2 Bonus
+              Progress to $1 Bonus
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{user?.tasks_completed || 0} / 5 tasks completed</span>
+                <span className="text-gray-600">{user?.tasks_completed || 0} / 10 tasks completed</span>
                 <span className="font-semibold text-blue-600">{bonusProgress.toFixed(0)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
@@ -172,6 +174,13 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Bonus Celebration Modal */}
+      <BonusCelebration 
+        isOpen={showBonusCelebration}
+        onClose={() => setShowBonusCelebration(false)}
+        bonusAmount={1.0}
+      />
     </div>
   );
 };
