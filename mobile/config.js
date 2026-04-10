@@ -20,7 +20,8 @@ export const ADMOB_CONFIG = {
 
 // App Configuration
 export const APP_CONFIG = {
-  TASKS_BEFORE_INTERSTITIAL: 5, // Show interstitial ad after every 5 tasks
-  BONUS_TASK_COUNT: 5, // Unlock $2 bonus after 5 tasks
-  BONUS_AMOUNT: 2.0,
+  TASKS_BEFORE_INTERSTITIAL: 3, // Show interstitial ad after every 3 tasks (increased frequency)
+  BONUS_TASK_COUNT: 10, // Unlock $1 bonus after 10 tasks
+  BONUS_AMOUNT: 1.0,
+  MINIMUM_WITHDRAWAL: 5.0, // $5.00 minimum withdrawal
 };

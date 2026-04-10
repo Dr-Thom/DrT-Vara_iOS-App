@@ -43,16 +43,12 @@ async def request_withdrawal(
         
         current_earnings = user.get("earnings", 0.0)
         
-        # Validate withdrawal amount
-        if withdrawal.amount <= 0:
-            raise HTTPException(status_code=400, detail="Invalid withdrawal amount")
+        # Minimum withdrawal is $5.00
+        if withdrawal.amount < 5.0:
+            raise HTTPException(status_code=400, detail="Minimum withdrawal is $5.00 USD")
         
         if withdrawal.amount > current_earnings:
             raise HTTPException(status_code=400, detail="Insufficient balance")
-        
-        # Minimum withdrawal check (except for bonus - no minimum for first $2)
-        if current_earnings < 5.0 and withdrawal.amount < current_earnings:
-            raise HTTPException(status_code=400, detail="Minimum withdrawal is $5 USD (or full balance if less)")
         
         # Create withdrawal request
         withdrawal_doc = {

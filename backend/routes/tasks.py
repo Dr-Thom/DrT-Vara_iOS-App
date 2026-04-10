@@ -16,8 +16,8 @@ mongo_url = os.environ.get('MONGO_URL')
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'vara_db')]
 
-BONUS_AMOUNT = 2.0  # $2 USD bonus
-TASKS_REQUIRED_FOR_BONUS = 5
+BONUS_AMOUNT = 1.0  # $1 USD bonus
+TASKS_REQUIRED_FOR_BONUS = 10
 
 @router.get("/", response_model=List[TaskResponse])
 async def get_available_tasks(current_user: dict = Depends(get_current_user)):
