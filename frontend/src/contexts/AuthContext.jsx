@@ -125,8 +125,9 @@ export const AuthProvider = ({ children }) => {
         { withCredentials: true }
       );
     } catch (error) {
-      setUser(null);
-    } finally {
+      // Silently handle logout errors
+    }
+    setUser(null);
   };
 
   const refreshUser = useCallback(async () => {
