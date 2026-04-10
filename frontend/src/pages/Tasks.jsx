@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -17,11 +17,7 @@ const Tasks = () => {
   const [showBonusCelebration, setShowBonusCelebration] = useState(false);
   const [bonusAmount, setBonusAmount] = useState(1.0);
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       const response = await axios.get(
         `${API_CONFIG.BACKEND_URL}/api/tasks/`,
@@ -34,7 +30,11 @@ const Tasks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const handleCompleteTask = async (taskId) => {
     setCompletingTaskId(taskId);
@@ -65,7 +65,6 @@ const Tasks = () => {
         }
       }
     } catch (error) {
-      console.error('Error completing task:', error);
       const errorMsg = error.response?.data?.detail || 'Failed to complete task';
       toast.error(typeof errorMsg === 'string' ? errorMsg : 'Failed to complete task');
     } finally {
@@ -230,3 +229,4 @@ const Tasks = () => {
 };
 
 export default Tasks;
+

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import API_CONFIG from '../config/api';
 
@@ -78,12 +78,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is already logged in
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await axios.get(
         `${API_CONFIG.BACKEND_URL}/api/auth/me`,
@@ -95,7 +90,12 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (email, password) => {
     const response = await axios.post(
@@ -125,17 +125,26 @@ export const AuthProvider = ({ children }) => {
         { withCredentials: true }
       );
     } catch (error) {
-      console.error('Logout error:', error);
-    }
-    setUser(null);
+      setUser(null);
+    } finally {
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     await checkAuth();
-  };
+  }, [checkAuth]);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
+    user,
+    loading,
+    login,
+    signup,
+    logout,
+    refreshUser
+  }), [user, loading, refreshUser]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
