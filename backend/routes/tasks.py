@@ -8,6 +8,8 @@ import logging
 from typing import List
 from datetime import datetime
 
+from utils.weekly_challenge import record_qualifying_referral
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -78,6 +80,18 @@ async def pay_referrer(referred_user: dict, earned_amount: float) -> float:
         "created_at": datetime.utcnow(),
     })
     logger.info(f"Referral payout: ${payout} to user {referred_by_user_id} from {referred_user.get('email')}")
+
+    # Weekly challenge: record this referred user as a qualifying friend for the week
+    try:
+        await record_qualifying_referral(
+            db,
+            referrer_user_id=referred_by_user_id,
+            referred_user_id=str(referred_user["_id"]),
+        )
+    except Exception as e:
+        # Never let weekly-challenge errors block task completion
+        logger.error(f"Weekly challenge update failed (non-fatal): {e}")
+
     return payout
 
 

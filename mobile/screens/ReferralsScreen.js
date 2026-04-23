@@ -11,6 +11,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { referralsAPI } from '../services/api';
 import { API_CONFIG } from '../config';
+import SuperBonusChallenge from '../components/SuperBonusChallenge';
 
 const ReferralsScreen = () => {
   const [data, setData] = useState(null);
@@ -100,6 +101,9 @@ const ReferralsScreen = () => {
       <Text style={styles.subtitle}>
         Earn 10% of every friend's first $100. Up to $10 per friend.
       </Text>
+
+      {/* Weekly $5 super bonus challenge */}
+      <SuperBonusChallenge />
 
       {/* Stats */}
       <View style={styles.statsRow}>

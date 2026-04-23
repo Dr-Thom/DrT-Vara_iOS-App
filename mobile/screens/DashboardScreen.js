@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import AdBanner from '../components/AdBanner';
+import SuperBonusChallenge from '../components/SuperBonusChallenge';
 import { APP_CONFIG, nextBonusThreshold } from '../config';
 
 const DashboardScreen = ({ navigation }) => {
@@ -85,6 +86,11 @@ const DashboardScreen = ({ navigation }) => {
           <Text style={styles.statValue}>{user?.referred_count || 0}</Text>
           <Text style={styles.statSub}>${(user?.referral_earnings || 0).toFixed(2)}</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Weekly Super Bonus Challenge */}
+      <View style={{ marginHorizontal: 20, marginTop: 12 }}>
+        <SuperBonusChallenge />
       </View>
 
       {/* Progress */}

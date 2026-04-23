@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Button } from '../components/ui/button';
 import { Gift, Users, DollarSign, Copy, Share2, CheckCircle2, Trophy, Crown, Medal } from 'lucide-react';
 import { toast } from 'sonner';
+import SuperBonusChallenge from '../components/SuperBonusChallenge';
 
 const Referrals = () => {
   const [data, setData] = useState(null);
@@ -93,6 +94,9 @@ const Referrals = () => {
           Earn <strong>10%</strong> of every friend's first <strong>$100</strong> in VARA earnings. That's up to <strong>$10</strong> per friend.
         </p>
       </div>
+
+      {/* Weekly $5 super bonus challenge */}
+      <SuperBonusChallenge />
 
       {/* Stats */}
       <div className="grid md:grid-cols-3 gap-4">

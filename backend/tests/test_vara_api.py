@@ -346,3 +346,126 @@ class TestReferralLeaderboard:
         # They should not appear in leaderboard as is_you
         for row in d["leaderboard"]:
             assert row["is_you"] is False, "Fresh user should not appear as is_you in top"
+
+
+
+# ---------- Weekly Super Bonus Challenge (iteration 6) ----------
+class TestWeeklyChallenge:
+    def test_challenge_requires_auth(self):
+        r = requests.get(f"{API}/referrals/challenge")
+        assert r.status_code in (401, 403), f"Expected 401/403, got {r.status_code}"
+
+    def test_challenge_response_shape_admin(self, admin_session):
+        r = admin_session.get(f"{API}/referrals/challenge")
+        assert r.status_code == 200
+        d = r.json()
+        for f in ["target", "super_bonus_amount", "qualified_count",
+                  "raw_qualified_count", "completed", "week_start", "week_end"]:
+            assert f in d, f"Missing field: {f}"
+        assert d["target"] == 3
+        assert d["super_bonus_amount"] == 5.0
+        assert isinstance(d["qualified_count"], int)
+        assert isinstance(d["raw_qualified_count"], int)
+        assert isinstance(d["completed"], bool)
+        # qualified_count is capped at target
+        assert d["qualified_count"] <= d["target"]
+        # raw_qualified_count >= qualified_count
+        assert d["raw_qualified_count"] >= d["qualified_count"]
+
+    def test_admin_already_completed_this_week(self, admin_session):
+        """Per smoke test: admin already completed this week's challenge."""
+        r = admin_session.get(f"{API}/referrals/challenge")
+        d = r.json()
+        assert d["completed"] is True, "Admin should have completed this week per setup"
+        assert d["qualified_count"] == 3
+
+    def test_additional_task_by_existing_friend_does_not_re_pay(self, admin_session):
+        """If an existing friend of admin completes another task, no double super bonus."""
+        # Capture admin's current balance
+        me0 = admin_session.get(f"{API}/auth/me").json()
+        r0 = admin_session.get(f"{API}/referrals/challenge").json()
+        assert r0["completed"] is True
+        # Create a fresh user using admin's code, complete 1 task
+        admin_code = admin_session._user["referral_code"]
+        s, _ = _make_user(referral_code=admin_code)
+        tasks = s.get(f"{API}/tasks/").json()
+        s.post(f"{API}/tasks/complete", json={"task_id": tasks[0]["_id"]})
+        time.sleep(0.4)
+
+        me1 = admin_session.get(f"{API}/auth/me").json()
+        # Admin should only receive the small referral payout (~$0.01), NOT another $5
+        delta = me1["earnings"] - me0["earnings"]
+        assert delta < 1.0, f"Admin got unexpectedly large credit ${delta} — possible double super bonus"
+        # Challenge still completed, qualified_count still capped at 3
+        r1 = admin_session.get(f"{API}/referrals/challenge").json()
+        assert r1["completed"] is True
+        assert r1["qualified_count"] == 3
+        # raw_qualified_count may exceed target (new friend counted internally)
+        assert r1["raw_qualified_count"] >= 3
+
+    def test_fresh_referrer_earns_super_bonus_with_3_friends(self):
+        """Register a fresh referrer A, have 3 distinct users each complete 1 task.
+        Verify A's challenge completes and balance increases by ~ $5 + small referral payouts."""
+        # Create referrer A
+        a_session, a_user = _make_user()
+        a_code = a_user["referral_code"]
+        assert a_code
+
+        # Baseline
+        me_a_0 = a_session.get(f"{API}/auth/me").json()
+        ch_a_0 = a_session.get(f"{API}/referrals/challenge").json()
+        assert ch_a_0["qualified_count"] == 0
+        assert ch_a_0["completed"] is False
+
+        # Register 3 friends with A's code, each completes 1 task
+        for i in range(3):
+            b_session, _ = _make_user(referral_code=a_code)
+            tasks = b_session.get(f"{API}/tasks/").json()
+            r = b_session.post(f"{API}/tasks/complete", json={"task_id": tasks[0]["_id"]})
+            assert r.status_code == 200
+            time.sleep(0.3)
+            ch_mid = a_session.get(f"{API}/referrals/challenge").json()
+            assert ch_mid["qualified_count"] == i + 1, f"After friend #{i+1}, qualified_count={ch_mid['qualified_count']}"
+
+        # After 3 friends → completed + $5 super bonus credited
+        ch_a_1 = a_session.get(f"{API}/referrals/challenge").json()
+        assert ch_a_1["completed"] is True, "Challenge should be completed after 3 friends"
+        assert ch_a_1["qualified_count"] == 3
+
+        me_a_1 = a_session.get(f"{API}/auth/me").json()
+        delta = me_a_1["earnings"] - me_a_0["earnings"]
+        # Each friend's $0.10 task → $0.01 referral payout * 3 = $0.03, + $5 super bonus = ~$5.03
+        assert 4.99 < delta < 5.10, f"Expected ~$5.03 delta, got ${delta}"
+        # super_bonuses_earned counter should increment
+        assert me_a_1.get("super_bonuses_earned", 0) >= 1
+
+    def test_challenge_dedup_same_friend_multiple_tasks(self):
+        """One friend completing multiple tasks only counts once."""
+        a_session, a_user = _make_user()
+        a_code = a_user["referral_code"]
+
+        b_session, _ = _make_user(referral_code=a_code)
+        tasks = b_session.get(f"{API}/tasks/").json()
+        # B completes 3 tasks
+        for i in range(3):
+            b_session.post(f"{API}/tasks/complete", json={"task_id": tasks[i]["_id"]})
+        time.sleep(0.4)
+
+        ch = a_session.get(f"{API}/referrals/challenge").json()
+        # Only 1 unique friend qualified, even though they did 3 tasks
+        assert ch["qualified_count"] == 1, f"Dedup failed: qualified_count={ch['qualified_count']}"
+        assert ch["raw_qualified_count"] == 1
+        assert ch["completed"] is False
+
+    def test_week_boundaries_iso_format(self, admin_session):
+        """week_start/week_end should be parseable ISO strings and span ~7 days."""
+        from datetime import datetime as dt
+        r = admin_session.get(f"{API}/referrals/challenge").json()
+        # Parse (strip trailing Z)
+        ws = dt.fromisoformat(r["week_start"].rstrip("Z"))
+        we = dt.fromisoformat(r["week_end"].rstrip("Z"))
+        diff = (we - ws).total_seconds()
+        # Week span ~ 7 days minus 1 microsecond
+        assert 6 * 86400 < diff <= 7 * 86400, f"Week span out of range: {diff}s"
+        # week_start should be a Monday
+        assert ws.weekday() == 0, f"week_start is not a Monday: weekday={ws.weekday()}"

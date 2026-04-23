@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { DollarSign, CheckCircle, Gift, TrendingUp, ArrowRight, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TrustFeed from '../components/TrustFeed';
+import SuperBonusChallenge from '../components/SuperBonusChallenge';
 
 const FIRST_BONUS_AT = 5;
 const RECURRING_BONUS_INTERVAL = 10;
@@ -127,6 +128,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Weekly Super Bonus Challenge */}
+      <SuperBonusChallenge />
 
       {/* Bonus Progress Bar */}
       <Card data-testid="dashboard-progress-card">

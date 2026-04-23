@@ -96,6 +96,10 @@ export const referralsAPI = {
     const response = await api.get(`/api/referrals/leaderboard?period=${period}&limit=${limit}`);
     return response.data;
   },
+  getChallenge: async () => {
+    const response = await api.get('/api/referrals/challenge');
+    return response.data;
+  },
 };
 
 export const statsAPI = {

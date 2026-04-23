@@ -1,0 +1,90 @@
+{
+  "summary": "Iteration 6 testing of the Weekly Super Bonus Challenge (invite 3 friends → $5 bonus). Backend: 7 new pytest tests added, all pass; full suite 33/33 pass (5 auth + 4 economics + 7 referrals + 2 public stats + 8 leaderboard regression + 7 new challenge). Frontend: SuperBonusChallenge card renders correctly on /app/dashboard and /app/referrals for admin in green 'Unlocked!' state with checkmark, 3 of 3 qualified, 100% bar, no countdown pill (correctly hidden when completed). No console errors, no regressions.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/referrals/challenge", "issue": "week_start/week_end ISO strings are built as naive datetime + 'Z' suffix (e.g. '2026-04-20T00:00:00Z'). It parses correctly but the datetime object from isoformat() is actually naive — the 'Z' is cosmetic. Clients that do Date.parse in JS handle it fine, but it is technically a malformed ISO8601 (should be '2026-04-20T00:00:00+00:00' or the datetime should be tz-aware before formatting)."},
+      {"endpoint": "utils/weekly_challenge.py", "issue": "Uses datetime.utcnow() (deprecated in Python 3.12+). Recommend datetime.now(timezone.utc) consistently."}
+    ]
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_vara_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "Concurrency safety: record_qualifying_referral uses find_one_and_update with $addToSet (atomic for set membership) AND a guarded update_one({super_bonus_paid: false}, {$set: super_bonus_paid: true}) — the modified_count==1 check guarantees the $5 is credited exactly once per week per referrer even under concurrent 3rd-friend task completions. Correct.",
+    "Idempotency verified: even when a 4th unique friend signs up + completes a task (admin already at 3/3), no extra $5 is paid; balance delta was < $1 (only the small referral payout). Confirmed by test_additional_task_by_existing_friend_does_not_re_pay.",
+    "Dedup verified: same referred_user_id added to $addToSet counts once — a friend completing 3 tasks yields qualified_count=1 (test_challenge_dedup_same_friend_multiple_tasks).",
+    "End-to-end verified: fresh referrer + 3 distinct friends each completing 1 task → challenge.completed=true, qualified_count=3, referrer balance delta ≈ $5.03 ($0.01 × 3 referral payouts + $5 super bonus), super_bonuses_earned counter incremented.",
+    "Week boundary: week_start = Monday 00:00 UTC (weekday()==0 verified), week_end = ~7 days later minus 1µs. Rolls over every Monday 00:00 UTC as spec'd.",
+    "Failure isolation: pay_referrer wraps record_qualifying_referral in try/except so weekly-challenge errors never block task completion — good defensive design.",
+    "Auth enforcement: GET /api/referrals/challenge returns 403 (FastAPI get_current_user default) without bearer token — acceptable; test accepts 401/403.",
+    "Frontend component: gracefully returns null on loading or axios error (setData(null)) — will not crash the page if endpoint is temporarily down. Good.",
+    "Frontend: countdown pill is correctly conditional on !completed; green/checkmark vs purple/rocket styling toggle is clean.",
+    "Minor: countdown tick interval 60s is fine; on a long-idle session the 'Resets in Xd Yh' could lag by up to 1 minute — acceptable UX."
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_vara_api.py (added TestWeeklyChallenge class: 7 new tests)"
+  ],
+
+  "success_rate": {
+    "backend": "100% (33/33 pytest tests pass — 7 new challenge + 26 regression)",
+    "frontend": "100% (SuperBonusChallenge renders correctly on both /app/dashboard and /app/referrals for admin; completed-state styling, text, progress bar, hidden countdown all verified)"
+  },
+
+  "test_credentials": {
+    "admin": "admin@vara.com / vara_admin_2026",
+    "admin_referral_code": "SPJVL2MT"
+  },
+
+  "seed_data_creation": "7 fresh users registered in backend tests with emails test_<uuid>@varatest.example.com. 3 of them qualify for admin's challenge this week but admin was already completed, so only raw_qualified_count increments (no double payout). One new fresh referrer 'A' + 3 of their friends were created to verify end-to-end super-bonus flow for a non-admin user.",
+
+  "verified_features": {
+    "backend_challenge": {
+      "requires_auth_401": "PASS (returns 403)",
+      "response_shape": "PASS (target=3, super_bonus_amount=5.0, qualified_count, raw_qualified_count, completed, week_start, week_end)",
+      "admin_completed_state": "PASS (completed=true, qualified_count=3)",
+      "no_double_pay_on_extra_friend": "PASS (delta<$1 after 4th friend task)",
+      "end_to_end_fresh_referrer": "PASS ($5.03 delta, completed=true after 3rd friend)",
+      "dedup_same_friend_multiple_tasks": "PASS (qualified_count=1)",
+      "week_boundaries_monday_utc": "PASS (weekday==0, span=~7d)"
+    },
+    "frontend_web": {
+      "referrals_page_card_rendered": "PASS (under hero paragraph)",
+      "dashboard_card_rendered": "PASS (between stats grid and progress bar)",
+      "completed_green_state": "PASS (green border + bg + checkmark)",
+      "progress_3_of_3": "PASS",
+      "progress_pct_100": "PASS",
+      "countdown_hidden_when_completed": "PASS (0 countdown elements)",
+      "unlocked_copy": "PASS ($5 Unlocked! 🎉 + Nice! You've earned this week's $5 super bonus. Resets Monday — do it again!)",
+      "no_console_errors": "PASS"
+    },
+    "regression_iter5": {
+      "auth_5_tests": "PASS",
+      "bonus_economics_4_tests": "PASS",
+      "referrals_core_7_tests": "PASS",
+      "public_stats_2_tests": "PASS",
+      "leaderboard_8_tests": "PASS"
+    }
+  },
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": false,
+
+  "context_for_next_testing_agent": "Weekly challenge (iter6) fully working. Admin is already completed for this UTC week with qualified_count=3 and super_bonus_paid=true. Every test run adds ~2-4 fresh users via admin's code → admin.raw_qualified_count grows over time but qualified_count stays capped at 3. Admin balance at end of this run = $11.47 (was $10.91 before smoke test, +$5 super bonus already credited earlier + small referral payouts). Purple/active variant of the card was not UI-tested directly (admin is completed); it was verified via backend flow (fresh user A's challenge transitions 0→1→2→3 correctly). Mobile not tested (React Native). Seed data users are test_<uuid>@varatest.example.com. Landing page, auth flows, leaderboard regression all still pass.",
+
+  "rca_of_the_issue": "No bugs found this iteration. Implementation is correct end-to-end."
+}

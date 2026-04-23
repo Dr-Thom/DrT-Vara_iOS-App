@@ -6,6 +6,8 @@ import os
 import logging
 from datetime import datetime, timezone
 
+from utils.weekly_challenge import get_current_challenge
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/referrals", tags=["referrals"])
@@ -72,6 +74,16 @@ async def validate_referral_code(code: str):
     if not referrer:
         return {"valid": False}
     return {"valid": True, "referrer_name": referrer.get("name", "a VARA user")}
+
+
+@router.get("/challenge")
+async def get_weekly_challenge(current_user: dict = Depends(get_current_user)):
+    """Return the current week's referral challenge status.
+
+    Rules: Invite 3 friends who complete at least one earning task this week
+    to unlock a $5 super bonus. Resets every Monday 00:00 UTC.
+    """
+    return await get_current_challenge(db, str(current_user["_id"]))
 
 
 @router.get("/leaderboard")
