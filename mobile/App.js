@@ -12,6 +12,8 @@ import SignupScreen from './screens/SignupScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import TasksScreen from './screens/TasksScreen';
 import WithdrawalScreen from './screens/WithdrawalScreen';
+import CalculatorScreen from './screens/CalculatorScreen';
+import ReferralsScreen from './screens/ReferralsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -73,6 +75,16 @@ const AppNavigator = () => {
             name="Tasks"
             component={TasksScreen}
             options={{ title: 'Available Tasks' }}
+          />
+          <Stack.Screen
+            name="Calculator"
+            component={CalculatorScreen}
+            options={{ title: 'Earnings Calculator' }}
+          />
+          <Stack.Screen
+            name="Referrals"
+            component={ReferralsScreen}
+            options={{ title: 'Refer & Earn' }}
           />
           <Stack.Screen
             name="Withdrawal"

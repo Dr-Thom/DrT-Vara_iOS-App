@@ -41,8 +41,8 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const register = async (email, password, name) => {
-    const data = await authAPI.register(email, password, name);
+  const register = async (email, password, name, referralCode) => {
+    const data = await authAPI.register(email, password, name, referralCode);
     // Save tokens for mobile (cookies aren't readable)
     if (data.access_token) {
       await AsyncStorage.setItem('accessToken', data.access_token);

@@ -26,6 +26,8 @@ import AppLayout from './components/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Withdrawal from './pages/Withdrawal';
+import Calculator from './pages/Calculator';
+import Referrals from './pages/Referrals';
 
 const LandingPage = () => {
   return (
@@ -73,6 +75,8 @@ function App() {
               <Route index element={<Navigate to="/app/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="tasks" element={<Tasks />} />
+              <Route path="calculator" element={<Calculator />} />
+              <Route path="referrals" element={<Referrals />} />
               <Route path="withdrawal" element={<Withdrawal />} />
             </Route>
             

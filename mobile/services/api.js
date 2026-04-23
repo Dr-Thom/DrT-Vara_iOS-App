@@ -62,8 +62,12 @@ export const authAPI = {
     return response.data;
   },
 
-  register: async (email, password, name) => {
-    const response = await api.post('/api/auth/register', { email, password, name });
+  register: async (email, password, name, referralCode) => {
+    const payload = { email, password, name };
+    if (referralCode && referralCode.trim()) {
+      payload.referral_code = referralCode.trim().toUpperCase();
+    }
+    const response = await api.post('/api/auth/register', payload);
     return response.data;
   },
 
@@ -75,6 +79,28 @@ export const authAPI = {
 
   getMe: async () => {
     const response = await api.get('/api/auth/me');
+    return response.data;
+  },
+};
+
+export const referralsAPI = {
+  getMe: async () => {
+    const response = await api.get('/api/referrals/me');
+    return response.data;
+  },
+  validate: async (code) => {
+    const response = await api.get(`/api/referrals/validate/${encodeURIComponent(code)}`);
+    return response.data;
+  },
+};
+
+export const statsAPI = {
+  totalPaidOut: async () => {
+    const response = await api.get('/api/stats/total-paid-out');
+    return response.data;
+  },
+  recentWithdrawals: async (limit = 10) => {
+    const response = await api.get(`/api/stats/recent-withdrawals?limit=${limit}`);
     return response.data;
   },
 };

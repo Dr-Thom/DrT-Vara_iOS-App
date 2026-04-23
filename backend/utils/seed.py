@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 
 async def seed_admin(db):
     """Seed admin user"""
+    from utils.auth import generate_referral_code
+    
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@vara.com")
     admin_password = os.environ.get("ADMIN_PASSWORD", "vara_admin_2026")
     
@@ -14,6 +16,10 @@ async def seed_admin(db):
     
     if existing is None:
         hashed = hash_password(admin_password)
+        # Generate unique referral code
+        code = generate_referral_code()
+        while await db.users.find_one({"referral_code": code}):
+            code = generate_referral_code()
         await db.users.insert_one({
             "email": admin_email,
             "password_hash": hashed,
@@ -24,10 +30,17 @@ async def seed_admin(db):
             "total_withdrawn": 0.0,
             "tasks_completed": 0,
             "bonus_unlocked": False,
+            "bonuses_earned": 0,
             "completed_task_ids": [],
+            "referral_code": code,
+            "referred_by": None,
+            "referred_by_user_id": None,
+            "referral_earnings": 0.0,
+            "referred_count": 0,
+            "referrer_earnings_paid": 0.0,
             "created_at": datetime.utcnow()
         })
-        logger.info(f"Admin user created: {admin_email}")
+        logger.info(f"Admin user created: {admin_email} (referral code: {code})")
     elif not verify_password(admin_password, existing["password_hash"]):
         await db.users.update_one(
             {"email": admin_email},

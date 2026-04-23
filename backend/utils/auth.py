@@ -1,6 +1,8 @@
 import bcrypt
 import os
 import jwt
+import secrets
+import string
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
@@ -9,6 +11,12 @@ JWT_ALGORITHM = "HS256"
 def get_jwt_secret() -> str:
     """Get JWT secret from environment"""
     return os.environ.get("JWT_SECRET", "your-secret-key-change-this-in-production")
+
+def generate_referral_code(length: int = 8) -> str:
+    """Generate a unique referral code (uppercase alphanumeric, no confusing chars)"""
+    # Exclude I, O, 0, 1 for legibility
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 def hash_password(password: str) -> str:
     """Hash password using bcrypt"""

@@ -16,6 +16,8 @@ from routes.waitlist import router as waitlist_router
 from routes.auth import router as auth_router
 from routes.tasks import router as tasks_router
 from routes.withdrawal import router as withdrawal_router
+from routes.referrals import router as referrals_router
+from routes.stats import router as stats_router
 
 # Import seed functions
 from utils.seed import seed_admin, seed_tasks
@@ -33,6 +35,8 @@ app.include_router(waitlist_router)
 app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(withdrawal_router)
+app.include_router(referrals_router)
+app.include_router(stats_router)
 
 # CORS - use frontend URL from env
 frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
@@ -56,11 +60,25 @@ async def startup_event():
     """Run on application startup"""
     # Create indexes
     await db.users.create_index("email", unique=True)
+    await db.users.create_index("referral_code", unique=True, sparse=True)
     await db.tasks.create_index("is_active")
+    await db.withdrawal_requests.create_index("status")
+    await db.referral_payouts.create_index("referrer_user_id")
     
     # Seed admin and tasks
     await seed_admin(db)
     await seed_tasks(db)
+    
+    # Backfill referral codes for any legacy users
+    from utils.auth import generate_referral_code
+    async for u in db.users.find({"referral_code": {"$in": [None, ""]}}):
+        code = generate_referral_code()
+        while await db.users.find_one({"referral_code": code}):
+            code = generate_referral_code()
+        await db.users.update_one(
+            {"_id": u["_id"]},
+            {"$set": {"referral_code": code}}
+        )
     
     logger.info("VARA API started successfully")
 
@@ -73,12 +91,14 @@ async def shutdown_db_client():
 async def root():
     return {
         "message": "VARA API is running",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "endpoints": {
             "waitlist": "/api/waitlist",
             "auth": "/api/auth",
             "tasks": "/api/tasks",
             "withdrawal": "/api/withdrawal",
+            "referrals": "/api/referrals",
+            "stats": "/api/stats",
             "health": "/api/health"
         }
     }

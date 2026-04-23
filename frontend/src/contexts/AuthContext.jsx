@@ -107,10 +107,14 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
-  const signup = async (email, password, name) => {
+  const signup = async (email, password, name, referralCode) => {
+    const payload = { email, password, name };
+    if (referralCode && referralCode.trim()) {
+      payload.referral_code = referralCode.trim().toUpperCase();
+    }
     const response = await axios.post(
       `${API_CONFIG.BACKEND_URL}/api/auth/register`,
-      { email, password, name },
+      payload,
       { withCredentials: true }
     );
     setUser(response.data);

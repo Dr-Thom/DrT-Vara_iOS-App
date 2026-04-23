@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from models.user import UserCreate, UserLogin, UserResponse, UserDB
-from utils.auth import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+from utils.auth import hash_password, verify_password, create_access_token, create_refresh_token, decode_token, generate_referral_code
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 import os
@@ -60,16 +60,43 @@ async def register(user_data: UserCreate, response: Response):
         # Hash password
         password_hash = hash_password(user_data.password)
         
+        # Resolve referrer (if a referral code was provided)
+        referred_by_code = None
+        referred_by_user_id = None
+        if user_data.referral_code:
+            code = user_data.referral_code.strip().upper()
+            referrer = await db.users.find_one({"referral_code": code})
+            if referrer:
+                referred_by_code = code
+                referred_by_user_id = str(referrer["_id"])
+            # Silently ignore invalid codes instead of erroring (better UX)
+        
+        # Generate a unique referral code for this new user
+        new_referral_code = generate_referral_code()
+        # Ensure uniqueness (collisions are extremely rare but handle them)
+        while await db.users.find_one({"referral_code": new_referral_code}):
+            new_referral_code = generate_referral_code()
+        
         # Create user document
         user_doc = UserDB(
             email=email,
             password_hash=password_hash,
-            name=user_data.name or email.split('@')[0]
+            name=user_data.name or email.split('@')[0],
+            referral_code=new_referral_code,
+            referred_by=referred_by_code,
+            referred_by_user_id=referred_by_user_id,
         )
         
         # Insert into database
         result = await db.users.insert_one(user_doc.model_dump())
         user_id = str(result.inserted_id)
+        
+        # Increment referrer's referred_count
+        if referred_by_user_id:
+            await db.users.update_one(
+                {"_id": ObjectId(referred_by_user_id)},
+                {"$inc": {"referred_count": 1}}
+            )
         
         # Create tokens
         access_token = create_access_token(user_id, email)
@@ -98,7 +125,7 @@ async def register(user_data: UserCreate, response: Response):
             path="/"
         )
         
-        logger.info(f"New user registered: {email}")
+        logger.info(f"New user registered: {email}" + (f" (referred by {referred_by_code})" if referred_by_code else ""))
         
         return {
             "_id": user_id,
@@ -110,6 +137,10 @@ async def register(user_data: UserCreate, response: Response):
             "total_withdrawn": user_doc.total_withdrawn,
             "tasks_completed": user_doc.tasks_completed,
             "bonus_unlocked": user_doc.bonus_unlocked,
+            "bonuses_earned": user_doc.bonuses_earned,
+            "referral_code": user_doc.referral_code,
+            "referred_count": user_doc.referred_count,
+            "referral_earnings": user_doc.referral_earnings,
             # Also return tokens in body for mobile clients (they can't read httpOnly cookies)
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -179,6 +210,10 @@ async def login(credentials: UserLogin, response: Response):
             "total_withdrawn": user.get("total_withdrawn", 0.0),
             "tasks_completed": user.get("tasks_completed", 0),
             "bonus_unlocked": user.get("bonus_unlocked", False),
+            "bonuses_earned": user.get("bonuses_earned", 0),
+            "referral_code": user.get("referral_code"),
+            "referred_count": user.get("referred_count", 0),
+            "referral_earnings": user.get("referral_earnings", 0.0),
             # Also return tokens in body for mobile clients (they can't read httpOnly cookies)
             "access_token": access_token,
             "refresh_token": refresh_token,

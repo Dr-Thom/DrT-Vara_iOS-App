@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
-import { LayoutDashboard, ListTodo, Wallet, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Wallet, LogOut, Menu, X, Calculator, Gift } from 'lucide-react';
 
 const AppLayout = () => {
   const { user, logout } = useAuth();
@@ -17,6 +17,8 @@ const AppLayout = () => {
   const navItems = [
     { to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/app/tasks', icon: ListTodo, label: 'Tasks' },
+    { to: '/app/calculator', icon: Calculator, label: 'Calculator' },
+    { to: '/app/referrals', icon: Gift, label: 'Refer & Earn' },
     { to: '/app/withdrawal', icon: Wallet, label: 'Withdraw' }
   ];
 
@@ -33,20 +35,21 @@ const AppLayout = () => {
               </div>
 
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center gap-6">
+              <nav className="hidden md:flex items-center gap-2 lg:gap-4">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
+                      `flex items-center gap-1.5 px-2 lg:px-3 py-2 rounded-lg text-sm lg:text-base font-medium transition-colors ${
                         isActive
                           ? 'bg-blue-50 text-blue-600'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`
                     }
+                    data-testid={`nav-${item.label.toLowerCase().replace(/\s|&/g, '-')}`}
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className="w-4 h-4 lg:w-5 lg:h-5" />
                     {item.label}
                   </NavLink>
                 ))}
