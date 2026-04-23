@@ -330,3 +330,26 @@ Aligned web + mobile with user's expanded build spec:
 - **P1**: Replace AdMob test IDs once user's Google account country issue is resolved
 - **P1**: Landing page copy update ($2 bonus → new economics messaging) — deferred, minor
 - **P2**: Play Store submission
+
+
+---
+
+## 🏆 v2.2 — Leaderboard + Copy Alignment (Feb 23, 2026)
+
+### Added
+- **Referral leaderboard** on `/app/referrals` page (web + mobile):
+  - Top 10 referrers by earnings with Month / All-time toggle
+  - Crown (rank 1), silver/bronze medals (2/3), YOU badge on own row
+  - If user is outside top 10, their rank shown separately below
+  - Backend: `GET /api/referrals/leaderboard?period=month|all&limit=N` (auth required, max limit 50)
+  - Data source: aggregation over `referral_payouts` collection
+
+### Copy Updates ($2 → $1 economics alignment)
+- Landing: Header badge, Hero headline + CTA, BonusExplained, WaitlistForm, mock.js (hero, FAQ, testimonials, task earnings)
+- App: Tasks page bonus unlock message, Dashboard welcome copy
+- Mobile: SignupScreen bonus badge, TasksScreen, LoginScreen
+- ExitIntentPopup intentionally kept as "$2 first bonus" (2× waitlist boost) — upgraded from "$3 vs $2"
+
+### Testing
+- Backend: 26/26 pytest tests pass (8 new leaderboard + 18 regression)
+- Frontend: Initial render bug caught by testing agent (missing Trophy/Crown/Medal imports + state hooks) — fixed inside iteration. Verified working: admin rank 1 with Crown + YOU badge, masked email, 7 friends, $1.23 earned. Month/All-time toggle works.
