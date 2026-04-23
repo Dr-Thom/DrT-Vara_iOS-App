@@ -17,6 +17,9 @@ const ReferralsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderYou, setLeaderYou] = useState(null);
+  const [leaderPeriod, setLeaderPeriod] = useState('month');
 
   const load = useCallback(async () => {
     try {
@@ -30,11 +33,24 @@ const ReferralsScreen = () => {
     }
   }, []);
 
+  const loadLb = useCallback(async (period) => {
+    try {
+      const r = await referralsAPI.getLeaderboard(period, 10);
+      setLeaderboard(r?.leaderboard || []);
+      setLeaderYou(r?.you || null);
+    } catch {
+      setLeaderboard([]);
+      setLeaderYou(null);
+    }
+  }, []);
+
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadLb(leaderPeriod); }, [leaderPeriod, loadLb]);
 
   const onRefresh = () => {
     setRefreshing(true);
     load();
+    loadLb(leaderPeriod);
   };
 
   const shareLink = data?.referral_code
@@ -137,9 +153,82 @@ const ReferralsScreen = () => {
           ))
         )}
       </View>
+
+      {/* Leaderboard */}
+      <View style={styles.leaderCard}>
+        <View style={styles.leaderHeader}>
+          <Text style={styles.leaderTitle}>🏆  Top Referrers</Text>
+          <View style={styles.periodToggle}>
+            <TouchableOpacity
+              onPress={() => setLeaderPeriod('month')}
+              style={[styles.periodBtn, leaderPeriod === 'month' && styles.periodBtnActive]}
+            >
+              <Text style={[styles.periodBtnText, leaderPeriod === 'month' && styles.periodBtnTextActive]}>Month</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setLeaderPeriod('all')}
+              style={[styles.periodBtn, leaderPeriod === 'all' && styles.periodBtnActive]}
+            >
+              <Text style={[styles.periodBtnText, leaderPeriod === 'all' && styles.periodBtnTextActive]}>All-time</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {leaderboard.length === 0 ? (
+          <Text style={styles.empty}>No referrers {leaderPeriod === 'month' ? 'this month' : ''} yet. Be the first!</Text>
+        ) : (
+          <>
+            {leaderboard.map((row) => <LeaderRow key={`${row.rank}-${row.display_name}`} row={row} />)}
+            {leaderYou && (
+              <>
+                <Text style={styles.leaderDivider}>···</Text>
+                <LeaderRow row={leaderYou} />
+              </>
+            )}
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 };
+
+const rankEmoji = (rank) => {
+  if (rank === 1) return '👑';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  return `#${rank}`;
+};
+
+const rankStyle = (rank) => {
+  if (rank === 1) return { backgroundColor: '#FEF3C7', borderColor: '#FBBF24' };
+  if (rank === 2) return { backgroundColor: '#F3F4F6', borderColor: '#9CA3AF' };
+  if (rank === 3) return { backgroundColor: '#FFEDD5', borderColor: '#FB923C' };
+  return { backgroundColor: '#fff', borderColor: '#E5E7EB' };
+};
+
+const LeaderRow = ({ row }) => (
+  <View
+    style={[
+      styles.leaderRow,
+      rankStyle(row.rank),
+      row.is_you && { borderWidth: 2, borderColor: '#3B82F6' },
+    ]}
+  >
+    <View style={styles.leaderLeft}>
+      <Text style={styles.leaderRank}>{rankEmoji(row.rank)}</Text>
+      <View style={{ flex: 1 }}>
+        <View style={styles.leaderNameRow}>
+          <Text style={styles.leaderName} numberOfLines={1}>{row.display_name}</Text>
+          {row.is_you && <Text style={styles.leaderYou}>YOU</Text>}
+        </View>
+        <Text style={styles.leaderSub}>
+          {row.referral_count} friend{row.referral_count !== 1 ? 's' : ''}
+        </Text>
+      </View>
+    </View>
+    <Text style={styles.leaderAmount}>${row.total_earned.toFixed(2)}</Text>
+  </View>
+);
 
 const StatCard = ({ label, value, color }) => (
   <View style={[styles.stat, { borderLeftColor: color }]}>
@@ -178,6 +267,23 @@ const styles = StyleSheet.create({
   payoutEmail: { fontSize: 14, color: '#1F2937', fontWeight: '500' },
   payoutDate: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
   payoutAmount: { fontSize: 16, fontWeight: '700', color: '#10B981' },
+  leaderCard: { backgroundColor: '#fff', borderRadius: 12, padding: 16, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, borderWidth: 1, borderColor: '#FDE68A' },
+  leaderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 },
+  leaderTitle: { fontSize: 16, fontWeight: '700', color: '#1F2937' },
+  periodToggle: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 8, padding: 2 },
+  periodBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  periodBtnActive: { backgroundColor: '#F59E0B' },
+  periodBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  periodBtnTextActive: { color: '#fff' },
+  leaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderRadius: 8, borderWidth: 1, marginBottom: 6 },
+  leaderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
+  leaderRank: { fontSize: 20, fontWeight: '700', color: '#6B7280', minWidth: 32, textAlign: 'center' },
+  leaderNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  leaderName: { fontSize: 14, fontWeight: '600', color: '#1F2937', flexShrink: 1 },
+  leaderYou: { fontSize: 10, fontWeight: '700', color: '#fff', backgroundColor: '#3B82F6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  leaderSub: { fontSize: 11, color: '#6B7280', marginTop: 1 },
+  leaderAmount: { fontSize: 15, fontWeight: '700', color: '#10B981' },
+  leaderDivider: { textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginVertical: 4 },
 });
 
 export default ReferralsScreen;

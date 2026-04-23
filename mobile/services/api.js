@@ -92,6 +92,10 @@ export const referralsAPI = {
     const response = await api.get(`/api/referrals/validate/${encodeURIComponent(code)}`);
     return response.data;
   },
+  getLeaderboard: async (period = 'month', limit = 10) => {
+    const response = await api.get(`/api/referrals/leaderboard?period=${period}&limit=${limit}`);
+    return response.data;
+  },
 };
 
 export const statsAPI = {

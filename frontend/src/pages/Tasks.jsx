@@ -120,7 +120,7 @@ const Tasks = () => {
         <Card className="border-2 border-yellow-200 bg-yellow-50">
           <CardContent className="p-4">
             <p className="text-sm font-medium text-yellow-800">
-              🎯 Complete {Math.max(0, 5 - (user?.tasks_completed || 0))} more task{Math.max(0, 5 - (user?.tasks_completed || 0)) !== 1 ? 's' : ''} to unlock your $2 USD bonus!
+              🎯 Complete {Math.max(0, 5 - (user?.tasks_completed || 0))} more task{Math.max(0, 5 - (user?.tasks_completed || 0)) !== 1 ? 's' : ''} to unlock your $1 USD bonus!
             </p>
           </CardContent>
         </Card>

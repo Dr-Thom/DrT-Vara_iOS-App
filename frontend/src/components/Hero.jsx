@@ -32,7 +32,7 @@ const Hero = () => {
 
             {/* Main Headline */}
             <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
-              Earn $2 USD in 30 Minutes{' '}
+              Earn USD in 30 Minutes{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
                 From Your Phone
               </span>
@@ -40,7 +40,7 @@ const Hero = () => {
 
             {/* Subheadline */}
             <p className="text-xl text-gray-600 leading-relaxed">
-              Complete 5 simple tasks. No experience needed. Withdraw instantly.
+              Complete 5 simple tasks, unlock a $1 bonus, then keep earning another $1 every 10 tasks.
             </p>
 
             {/* CTA Buttons */}
@@ -61,7 +61,7 @@ const Hero = () => {
                 variant="outline"
                 className="border-2 border-gray-300 text-gray-700 px-8 py-6 text-lg font-semibold hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300"
               >
-                ▶️ Watch How You Earn $2 USD (1 min)
+                ▶️ Watch How You Earn On VARA (1 min)
               </Button>
             </div>
 

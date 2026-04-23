@@ -264,3 +264,85 @@ class TestPublicStats:
         for w in d["recent_withdrawals"]:
             if w.get("masked_email") and w["masked_email"] != "anonymous":
                 assert "***" in w["masked_email"]
+
+
+
+# ---------- Referral Leaderboard (iteration 5) ----------
+class TestReferralLeaderboard:
+    def test_leaderboard_requires_auth(self):
+        r = requests.get(f"{API}/referrals/leaderboard?period=month")
+        assert r.status_code in (401, 403), f"Expected 401/403 without auth, got {r.status_code}"
+
+    def test_leaderboard_month_period_shape(self, admin_session):
+        r = admin_session.get(f"{API}/referrals/leaderboard?period=month")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["period"] == "month"
+        assert isinstance(d["leaderboard"], list)
+        assert "you" in d
+        # Validate row shape when present
+        for row in d["leaderboard"]:
+            assert {"rank", "display_name", "total_earned", "referral_count", "is_you"}.issubset(row.keys())
+            assert isinstance(row["rank"], int) and row["rank"] >= 1
+            assert isinstance(row["total_earned"], (int, float))
+            assert isinstance(row["referral_count"], int)
+
+    def test_leaderboard_all_period_shape(self, admin_session):
+        r = admin_session.get(f"{API}/referrals/leaderboard?period=all")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["period"] == "all"
+        assert isinstance(d["leaderboard"], list)
+
+    def test_leaderboard_admin_is_you_flag(self, admin_session):
+        """Admin should be rank 1 with is_you=true (they have $0.69 from referrals)."""
+        r = admin_session.get(f"{API}/referrals/leaderboard?period=all")
+        d = r.json()
+        if len(d["leaderboard"]) > 0:
+            # Find any row flagged is_you
+            you_rows = [row for row in d["leaderboard"] if row["is_you"]]
+            assert len(you_rows) <= 1, "Only one row should be is_you"
+            # If admin is in top N, you field should be null (caller is in top)
+            if len(you_rows) == 1:
+                assert d["you"] is None, "If caller is in top-N, 'you' should be None"
+                assert you_rows[0]["total_earned"] > 0
+
+    def test_leaderboard_all_period_has_more_or_equal_earnings(self, admin_session):
+        """'all' period totals should be >= 'month' period totals for same user."""
+        r_month = admin_session.get(f"{API}/referrals/leaderboard?period=month").json()
+        r_all = admin_session.get(f"{API}/referrals/leaderboard?period=all").json()
+        # Find admin row in each
+        def admin_total(resp):
+            for row in resp["leaderboard"]:
+                if row["is_you"]:
+                    return row["total_earned"]
+            if resp.get("you"):
+                return resp["you"]["total_earned"]
+            return 0
+        assert admin_total(r_all) >= admin_total(r_month)
+
+    def test_leaderboard_limit_param(self, admin_session):
+        r = admin_session.get(f"{API}/referrals/leaderboard?period=all&limit=3")
+        assert r.status_code == 200
+        d = r.json()
+        assert len(d["leaderboard"]) <= 3
+
+    def test_leaderboard_limit_capped_at_50(self, admin_session):
+        r = admin_session.get(f"{API}/referrals/leaderboard?period=all&limit=999")
+        assert r.status_code == 200
+        d = r.json()
+        assert len(d["leaderboard"]) <= 50
+
+    def test_leaderboard_you_for_non_top_user(self):
+        """Register a fresh user with no referrals; they should get you=null or you with 0 stats."""
+        s, _ = _make_user()
+        r = s.get(f"{API}/referrals/leaderboard?period=all")
+        assert r.status_code == 200
+        d = r.json()
+        # This user has 0 payouts -> they won't be in top and won't have a payout row
+        # Either you is None (no payouts found) OR rank with 0 stats
+        if d["you"] is not None:
+            assert d["you"]["is_you"] is True
+        # They should not appear in leaderboard as is_you
+        for row in d["leaderboard"]:
+            assert row["is_you"] is False, "Fresh user should not appear as is_you in top"

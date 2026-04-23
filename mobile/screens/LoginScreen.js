@@ -44,7 +44,7 @@ const LoginScreen = ({ navigation }) => {
           <View style={styles.header}>
             <Text style={styles.logo}>VARA</Text>
             <View style={styles.bonusBadge}>
-              <Text style={styles.bonusText}>$2 Bonus</Text>
+              <Text style={styles.bonusText}>$1 Bonus</Text>
             </View>
           </View>
 

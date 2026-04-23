@@ -83,7 +83,7 @@ const WaitlistForm = () => {
               </div>
               
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Start Earning USD Today — Unlock Your $2 USD Bonus
+                Start Earning USD Today — Unlock Your $1 USD Bonus
               </h2>
               <p className="text-lg text-blue-100 leading-relaxed">
                 Be among the first to access VARA when we launch. Get exclusive early access and an extra bonus!

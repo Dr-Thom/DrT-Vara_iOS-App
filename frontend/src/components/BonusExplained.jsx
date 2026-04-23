@@ -90,9 +90,9 @@ const BonusExplained = () => {
                   
                   <div>
                     <p className="text-white/90 text-lg mb-2">Your Welcome Bonus</p>
-                    <p className="text-7xl font-bold mb-2">$2</p>
+                    <p className="text-7xl font-bold mb-2">$1</p>
                     <p className="text-2xl font-semibold">USD</p>
-                    <p className="text-3xl font-bold text-white/90 mt-3">≈ ₱110+ PHP</p>
+                    <p className="text-3xl font-bold text-white/90 mt-3">+ $1 every 10 tasks</p>
                   </div>
 
                   <div className="space-y-4 pt-6 border-t border-white/20">

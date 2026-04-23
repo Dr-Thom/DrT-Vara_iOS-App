@@ -82,7 +82,7 @@ const ExitIntentPopup = () => {
       const response = await axios.post(`${API_CONFIG.BACKEND_URL}${API_CONFIG.ENDPOINTS.WAITLIST}`, {
         email: email,
         source: 'exit_popup',
-        bonusType: 'early_access' // $3 bonus for exit popup
+        bonusType: 'early_access' // $2 bonus for exit popup
       });
 
       if (response.data.success) {
@@ -138,10 +138,10 @@ const ExitIntentPopup = () => {
 
             <DialogHeader>
               <DialogTitle className="text-3xl md:text-4xl font-bold text-white mb-3">
-                Wait! Get an Extra $1 Bonus! 🎁
+                Wait! Double Your First Bonus! 🎁
               </DialogTitle>
               <DialogDescription className="text-lg text-white/90">
-                Join our waitlist in the next <span className="font-bold text-white">{formatTime(timeLeft)}</span> and unlock a special <span className="font-bold text-white text-xl">$3 USD bonus</span> instead of $2!
+                Join our waitlist in the next <span className="font-bold text-white">{formatTime(timeLeft)}</span> and unlock a <span className="font-bold text-white text-xl">$2 first bonus</span> instead of $1!
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -155,16 +155,16 @@ const ExitIntentPopup = () => {
               <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-3">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <p className="text-2xl font-bold text-blue-700">$3 USD</p>
-              <p className="text-xs text-gray-600">Welcome Bonus</p>
+              <p className="text-2xl font-bold text-blue-700">$2 USD</p>
+              <p className="text-xs text-gray-600">First Bonus (2× normal)</p>
             </div>
 
             <div className="flex flex-col items-center text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-3">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
-              <p className="text-2xl font-bold text-green-700">50% More</p>
-              <p className="text-xs text-gray-600">Than Regular</p>
+              <p className="text-2xl font-bold text-green-700">2×</p>
+              <p className="text-xs text-gray-600">First Bonus</p>
             </div>
 
             <div className="flex flex-col items-center text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
@@ -184,7 +184,7 @@ const ExitIntentPopup = () => {
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="text-green-500 mt-0.5">✓</span>
-                <span><strong>$3 USD bonus</strong> (50% more than standard $2)</span>
+                <span><strong>$2 first bonus</strong> (2× the standard $1)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-500 mt-0.5">✓</span>
@@ -207,7 +207,7 @@ const ExitIntentPopup = () => {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 type="email"
-                placeholder="Enter your email to claim $3 bonus"
+                placeholder="Enter your email to claim $2 bonus"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
@@ -226,7 +226,7 @@ const ExitIntentPopup = () => {
                 'Offer Expired'
               ) : (
                 <>
-                  Claim My $3 Bonus Now
+                  Claim My $2 Bonus Now
                   <Sparkles className="w-5 h-5 ml-2" />
                 </>
               )}

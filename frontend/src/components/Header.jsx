@@ -32,7 +32,7 @@ const Header = () => {
               VARA
             </div>
             <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">
-              $2 Bonus
+              $1 Bonus
             </span>
           </div>
 

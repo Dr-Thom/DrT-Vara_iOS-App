@@ -89,7 +89,7 @@ const TasksScreen = () => {
         setTimeout(() => {
           Alert.alert(
             '🎉 Congratulations!',
-            'You unlocked your $2 USD bonus!',
+            'You unlocked your $1 USD bonus!',
             [{ text: 'Awesome!', style: 'default' }]
           );
         }, 1000);
@@ -138,7 +138,7 @@ const TasksScreen = () => {
               <View style={styles.bonusAlert}>
                 <Text style={styles.bonusAlertText}>
                   🎯 Complete {Math.max(0, 5 - (user?.tasks_completed || 0))} more task
-                  {Math.max(0, 5 - (user?.tasks_completed || 0)) !== 1 ? 's' : ''} to unlock your $2 USD bonus!
+                  {Math.max(0, 5 - (user?.tasks_completed || 0)) !== 1 ? 's' : ''} to unlock your $1 USD bonus!
                 </Text>
               </View>
             )}

@@ -1,0 +1,101 @@
+{
+  "summary": "Iteration 5 testing of (1) new referral leaderboard endpoint + UI and (2) $2→$1 copy updates. Backend: 26/26 pytest tests pass (18 regression + 8 new leaderboard). Frontend: Found 2 CRITICAL runtime bugs on /app/referrals page (missing imports + missing state hooks) that completely broke the page with 'Trophy is not defined' and 'leaderPeriod is not defined' ReferenceErrors. Both fixed by testing agent. After fix, leaderboard UI works end-to-end: admin appears rank 1 with Crown icon, YOU badge, masked email ad***@vara.com, 7 friends referred, $1.23 earned; Month/All-time toggle reloads correctly. All copy updates ($1) verified on landing (hero + header), dashboard, calculator.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/referrals/leaderboard", "issue": "Month-start calc uses datetime(...).replace(tzinfo=None) which makes match work against naive datetimes. This only works because payouts are stored as naive UTC too — correct by coincidence. Recommend storing+comparing with timezone-aware datetimes consistently for safety."},
+      {"endpoint": "/api/referrals/leaderboard", "issue": "N+1 user lookup in hydration loop (line 121-125) — one db.users.find_one per leaderboard row. Fine at 10 rows but should use $lookup or batched $in when limit grows."}
+    ]
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Referrals page (/app/referrals)", "issue": "FIXED BY TESTING AGENT: ReferenceError 'Trophy is not defined' — Trophy, Crown, Medal used but not imported from lucide-react.", "selector": "/app/referrals", "priority": "CRITICAL"},
+      {"component": "Referrals page (/app/referrals)", "issue": "FIXED BY TESTING AGENT: ReferenceError 'leaderPeriod is not defined' — useState hooks for leaderPeriod, leaderboard, leaderYou were never declared. Also the useEffect to fetch /api/referrals/leaderboard was missing. Added both.", "selector": "/app/referrals", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_vara_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+
+  "action_items": [
+    "Main agent: review the fixes applied by testing agent in /app/frontend/src/pages/Referrals.jsx (added imports for Trophy/Crown/Medal and added useState hooks + useEffect for leaderboard fetch). Keep as-is or adapt to your implementation style.",
+    "Optional: address minor N+1 lookup in routes/referrals.py leaderboard hydration (low priority until volume grows)."
+  ],
+
+  "critical_code_review_comments": [
+    "CRITICAL: Referrals.jsx was missing icon imports AND all leaderboard state/effect — this is a failed pre-commit smoke check. The code could not render at all. Suggest running the app in-browser after UI changes before shipping.",
+    "Leaderboard backend logic is correct: aggregates by referrer_user_id, sums amount, counts unique referred_user_id via $addToSet. period='month' filters on UTC month start; period='all' skips filter. is_you flag set correctly inside row loop. 'you' field populated only for callers outside top-N with a secondary aggregate counting how many referrers earned strictly more.",
+    "limit param is correctly clamped: max(1, min(limit, 50)). Tested with limit=999 → returned ≤50 rows.",
+    "401 enforcement works: /api/referrals/leaderboard without Bearer token returns 401 (via get_current_user dependency).",
+    "UI LeaderRow component correctly shows Crown(rank 1, amber), Medal(rank 2 gray, rank 3 orange) per spec.",
+    "Copy updates verified: Landing hero shows '$1 USD Bonus', header badge shows '$1 Bonus', Calculator shows '$0.10 per task' and '$1 bonus'. Exit popup intentionally still shows $2 (2× waitlist boost). Legitimate $2/$3 occurrences ($284 testimonial, $50-$200 FAQ range) are fine per instructions."
+  ],
+
+  "updated_files": [
+    "/app/frontend/src/pages/Referrals.jsx (added Trophy/Crown/Medal imports + leaderPeriod/leaderboard/leaderYou state + useEffect to fetch leaderboard)",
+    "/app/backend/tests/test_vara_api.py (added TestReferralLeaderboard class: 8 new tests)"
+  ],
+
+  "success_rate": {
+    "backend": "100% (26/26 pytest tests pass — 8 new leaderboard + 18 regression)",
+    "frontend": "100% after fixes (leaderboard rendered with admin rank 1 + YOU badge + Crown icon, Month/All-time toggle works, all $1 copy verified)"
+  },
+
+  "test_credentials": {
+    "admin": "admin@vara.com / vara_admin_2026",
+    "admin_referral_code": "SPJVL2MT"
+  },
+
+  "seed_data_creation": "Fresh user registered in test_leaderboard_you_for_non_top_user (test_<uuid>@varatest.example.com). No impact on admin row count.",
+
+  "verified_features": {
+    "backend_leaderboard": {
+      "requires_auth_401": "PASS",
+      "period_month_shape": "PASS — {period, leaderboard[], you}",
+      "period_all_shape": "PASS",
+      "is_you_flag": "PASS — admin (rank 1) has is_you=true, 'you' field null when in top-N",
+      "all_vs_month_invariant": "PASS — all-time totals ≥ month totals for same user",
+      "limit_param_default_10": "PASS (leaderboard.length ≤ 3 when limit=3)",
+      "limit_capped_at_50": "PASS (limit=999 → ≤50 rows)",
+      "non_top_user_you_field": "PASS — fresh user never appears as is_you in top rows"
+    },
+    "frontend_leaderboard_ui": {
+      "top_referrers_section_visible": "PASS (after fix)",
+      "month_all_toggle_works": "PASS",
+      "crown_icon_rank_1_amber": "PASS (1 SVG in rank-1 row)",
+      "you_badge_on_admin_row": "PASS",
+      "masked_email_display": "PASS (ad***@vara.com)",
+      "referral_count_display": "PASS ('7 friends referred')",
+      "empty_state_message": "Not directly triggered for admin (admin has data); code path verified by inspection"
+    },
+    "copy_updates": {
+      "landing_hero_1_usd_bonus": "PASS",
+      "landing_header_1_bonus_badge": "PASS",
+      "landing_no_stray_2_bonus": "PASS",
+      "calculator_1_bonus_and_0_10_per_task": "PASS",
+      "dashboard_contains_1_refs": "PASS (3 occurrences)",
+      "tasks_page_1_bonus_msg": "Not shown for admin (already past 5 tasks) — expected; message is conditional on unlock status",
+      "exit_popup_2_usd_intentional": "PASS per spec (2× waitlist boost)"
+    },
+    "regression_from_iter4": {
+      "auth": "PASS (5/5)",
+      "bonus_economics": "PASS (4/4)",
+      "referral_system": "PASS (7/7)",
+      "public_stats": "PASS (2/2)"
+    }
+  },
+
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "main_agent_can_self_test": true,
+
+  "context_for_next_testing_agent": "Leaderboard fully working after testing-agent fix to Referrals.jsx (missing imports and state). Admin's current stats: rank 1, 7 friends referred, $1.23 total (both month & all-time since all payouts were this month). Seed data from iter4 (multiple test_*@varatest.example.com users) is visible in admin's recent payouts feed and inflates leaderboard. Backend /api/referrals/leaderboard endpoint is solid. Mobile (/app/mobile) was not tested per instructions.",
+
+  "rca_of_the_issue": "Root cause: Main agent added new leaderboard UI markup to /app/frontend/src/pages/Referrals.jsx (JSX referencing <Trophy/>, <Crown/>, <Medal/>, leaderPeriod, leaderboard, leaderYou, setLeaderPeriod) but did NOT: (a) add those icon imports to the lucide-react import statement, (b) declare the useState hooks, (c) add the useEffect to fetch /api/referrals/leaderboard. Result: React threw 'Trophy is not defined' on first render, hiding the page behind the uncaught-runtime-errors overlay. Reproduction: log in as admin, navigate to /app/referrals → red error overlay. Mitigation (applied): added imports + 3 useState hooks + fetch-leaderboard useEffect keyed on leaderPeriod."
+}

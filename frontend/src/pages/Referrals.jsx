@@ -3,13 +3,16 @@ import axios from 'axios';
 import API_CONFIG from '../config/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Gift, Users, DollarSign, Copy, Share2, CheckCircle2 } from 'lucide-react';
+import { Gift, Users, DollarSign, Copy, Share2, CheckCircle2, Trophy, Crown, Medal } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Referrals = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [leaderPeriod, setLeaderPeriod] = useState('month');
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderYou, setLeaderYou] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -24,6 +27,23 @@ const Referrals = () => {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      try {
+        const r = await axios.get(
+          `${API_CONFIG.BACKEND_URL}/api/referrals/leaderboard?period=${leaderPeriod}&limit=10`,
+          { withCredentials: true }
+        );
+        setLeaderboard(r.data.leaderboard || []);
+        setLeaderYou(r.data.you || null);
+      } catch {
+        setLeaderboard([]);
+        setLeaderYou(null);
+      }
+    };
+    loadLeaderboard();
+  }, [leaderPeriod]);
 
   const shareLink = data?.referral_code
     ? `${window.location.origin}/signup?ref=${data.referral_code}`
@@ -184,8 +204,97 @@ const Referrals = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Leaderboard */}
+      <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 via-white to-yellow-50">
+        <CardHeader>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Top Referrers
+              </CardTitle>
+              <CardDescription>Climb the ranks and keep earning.</CardDescription>
+            </div>
+            <div className="inline-flex rounded-lg border border-amber-200 p-0.5 bg-white" data-testid="leaderboard-period-toggle">
+              <button
+                type="button"
+                onClick={() => setLeaderPeriod('month')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${leaderPeriod === 'month' ? 'bg-amber-500 text-white' : 'text-gray-600 hover:bg-amber-50'}`}
+                data-testid="leaderboard-month-btn"
+              >
+                This Month
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeaderPeriod('all')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${leaderPeriod === 'all' ? 'bg-amber-500 text-white' : 'text-gray-600 hover:bg-amber-50'}`}
+                data-testid="leaderboard-all-btn"
+              >
+                All-time
+              </button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {leaderboard.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              No referrers yet {leaderPeriod === 'month' ? 'this month' : ''}. Be the first!
+            </div>
+          ) : (
+            <div className="space-y-2" data-testid="leaderboard-list">
+              {leaderboard.map((row) => (
+                <LeaderRow key={row.rank + row.display_name} row={row} />
+              ))}
+              {leaderYou && (
+                <>
+                  <div className="text-center text-xs text-gray-400 py-1">···</div>
+                  <LeaderRow row={leaderYou} />
+                </>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
+
+const rankStyles = (rank) => {
+  if (rank === 1) return 'bg-gradient-to-r from-yellow-100 to-amber-100 border-amber-300';
+  if (rank === 2) return 'bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300';
+  if (rank === 3) return 'bg-gradient-to-r from-orange-100 to-amber-50 border-orange-300';
+  return 'bg-white border-gray-200';
+};
+
+const rankIcon = (rank) => {
+  if (rank === 1) return <Crown className="w-5 h-5 text-amber-500" />;
+  if (rank === 2) return <Medal className="w-5 h-5 text-gray-500" />;
+  if (rank === 3) return <Medal className="w-5 h-5 text-orange-500" />;
+  return <span className="w-5 text-center text-sm font-bold text-gray-400">#{rank}</span>;
+};
+
+const LeaderRow = ({ row }) => (
+  <div
+    className={`flex items-center justify-between rounded-lg border p-3 transition-all ${rankStyles(row.rank)} ${row.is_you ? 'ring-2 ring-blue-400 ring-offset-1' : ''}`}
+    data-testid={`leaderboard-row-${row.rank}`}
+  >
+    <div className="flex items-center gap-3 min-w-0">
+      <div className="flex-shrink-0">{rankIcon(row.rank)}</div>
+      <div className="min-w-0">
+        <div className="font-semibold text-gray-900 truncate flex items-center gap-2">
+          {row.display_name}
+          {row.is_you && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">YOU</span>
+          )}
+        </div>
+        <div className="text-xs text-gray-500">
+          {row.referral_count} friend{row.referral_count !== 1 ? 's' : ''} referred
+        </div>
+      </div>
+    </div>
+    <div className="text-lg font-bold text-green-600">${row.total_earned.toFixed(2)}</div>
+  </div>
+);
 
 export default Referrals;
