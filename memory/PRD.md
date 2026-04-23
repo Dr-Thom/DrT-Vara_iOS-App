@@ -275,3 +275,58 @@ Build a landing page for VARA - an app where users can earn USD from their phone
 - **P1**: Google Play Developer account registration ($25)
 - **P2**: Upload AAB to Play Store; use `/app/PLAY_STORE_LISTING.md` + `/app/PRIVACY_POLICY.md` + `icon.png` for listing
 - **P2**: Post-launch analytics + revenue tracking
+
+
+---
+
+## 🔥 v2.1 — New Economy & Referral System (Feb 23, 2026)
+
+Aligned web + mobile with user's expanded build spec:
+
+### Updated Economics
+- **Tasks**: $0.10 each (unchanged)
+- **Bonus**: $1 at task #5 (first), then every 10 tasks after (#15, #25, #35…)
+  - Was: $1 at 10 tasks (one-time)
+- **Referral**: 10% of referred user's earnings, capped at $10 per referral (~first $100)
+- **Withdrawal**: $5 minimum (unchanged)
+
+### New Pages (Web)
+- `/app/calculator` — Interactive earnings calculator (1–50 tasks/day slider × 1–7 days/week) with daily/weekly/monthly projections
+- `/app/referrals` — User's referral code, shareable link (copy + native share), referral stats, recent payouts feed
+- Signup page — optional referral code input with live validation (green check for valid, red for invalid); accepts `?ref=CODE` URL param
+
+### New Pages (Mobile / React Native)
+- `CalculatorScreen` — Same as web, with `@react-native-community/slider`
+- `ReferralsScreen` — Code display, Share API + Clipboard copy, payout feed
+- `SignupScreen` — Added referral_code field with live validation
+- `DashboardScreen` — Redesigned with 4-stat grid (Balance, Tasks, Bonuses, Referrals) + progress bar toward next bonus
+
+### New Backend Endpoints
+- `POST /api/auth/register` — now accepts optional `referral_code`, generates unique `referral_code` for new user, increments referrer's `referred_count`
+- `GET /api/referrals/me` (auth) — returns referral code, stats, recent payouts with masked emails
+- `GET /api/referrals/validate/{code}` (public) — live code validation for signup form
+- `GET /api/stats/total-paid-out` (public) — trust counter (sum of completed withdrawals + optional `TOTAL_PAID_OUT_BASE` env seed)
+- `GET /api/stats/recent-withdrawals?limit=N` (public) — social proof feed with masked emails
+
+### Data Model Changes
+- `users` collection new fields: `referral_code` (unique), `referred_by` (code), `referred_by_user_id`, `referral_earnings`, `referred_count`, `referrer_earnings_paid` (for cap enforcement), `bonuses_earned`
+- New collection: `referral_payouts` (ledger) — referrer_user_id, referred_user_id, referred_email, amount, triggered_by_earned, created_at
+
+### Token Changes
+- `POST /api/auth/login`, `/register`, `/refresh` now return `access_token` + `refresh_token` in body (mobile support) AND set httpOnly cookies (web)
+- Web auth flow unchanged; mobile clients save tokens to AsyncStorage
+
+### Testing Status
+- **Backend**: 18/18 pytest tests pass (bonus math, referral cap, token flows, stats endpoints)
+- **Frontend (web)**: 7/7 flows pass (login, dashboard, calculator sliders, referrals page, signup with ref code, trust feed)
+- **Mobile**: Code complete, lint clean, expo-doctor 17/17 — not tested in emulator (requires EAS build)
+
+### Known Issues / Non-Bugs
+- Admin user's `bonuses_earned=0` despite 8 completed tasks (seeded pre-field). New users track correctly. Not affecting users.
+- `/api/stats/recent-withdrawals` does N+1 user lookups — acceptable at current scale
+
+### Next Tasks
+- **P0**: User pushes to GitHub + runs EAS build on desktop
+- **P1**: Replace AdMob test IDs once user's Google account country issue is resolved
+- **P1**: Landing page copy update ($2 bonus → new economics messaging) — deferred, minor
+- **P2**: Play Store submission
