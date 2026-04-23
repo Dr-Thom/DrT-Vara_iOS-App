@@ -113,6 +113,6 @@ async def get_current_challenge(db, user_id: str) -> dict:
         "qualified_count": min(qualified_count, SUPER_BONUS_TARGET),
         "raw_qualified_count": qualified_count,
         "completed": paid,
-        "week_start": week_start.isoformat() + "Z",
-        "week_end": week_end.isoformat() + "Z",
+        "week_start": week_start.isoformat() + "+00:00",
+        "week_end": week_end.isoformat() + "+00:00",
     }

@@ -352,4 +352,31 @@ Aligned web + mobile with user's expanded build spec:
 
 ### Testing
 - Backend: 26/26 pytest tests pass (8 new leaderboard + 18 regression)
+
+---
+
+## 🚀 v2.3 — Weekly Super Bonus Challenge (Feb 23, 2026)
+
+### Added
+- **Weekly $5 Super Bonus**: Referrers get $5 when 3 distinct friends each complete ≥1 earning task in the same UTC calendar week (Mon 00:00 – Sun 23:59)
+- Backend: `utils/weekly_challenge.py` handles atomic dedup ($addToSet) + single-shot $5 credit (guarded update)
+- Backend: `GET /api/referrals/challenge` returns progress + deadline
+- `pay_referrer()` now records qualifying referral after payout (wrapped in try/except so failures never block task complete)
+- `super_bonuses_earned` counter added to user doc
+- New collection: `weekly_referral_challenges` (referrer_user_id, week_start, qualified_referreds, super_bonus_paid)
+
+### UI (web + mobile)
+- New `SuperBonusChallenge` component on `/app/referrals` and `/app/dashboard`
+- Progress bar 0/3 → 3/3, countdown pill "Resets in Xd Yh"
+- State toggles: purple/rocket (active) ↔ green/checkmark (unlocked)
+
+### Testing
+- Backend: 33/33 pytest tests pass (7 new challenge + 26 regression)
+- Frontend: Admin shows completed state on both pages, progress 3/3, no countdown (correctly hidden), no console errors
+- Idempotency + concurrency: atomic $set-if-not-paid guarantees single payout even under race conditions
+- Dedup: same friend completing multiple tasks counts as 1 qualifier
+
+### Smoke test result
+Admin balance went $5.88 → $10.91 after 3 fresh friends completed 1 task each. Delta = $5.03 (3×$0.01 referral + $5.00 super bonus) ✓
+
 - Frontend: Initial render bug caught by testing agent (missing Trophy/Crown/Medal imports + state hooks) — fixed inside iteration. Verified working: admin rank 1 with Crown + YOU badge, masked email, 7 friends, $1.23 earned. Month/All-time toggle works.
