@@ -7,9 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1E3A8A"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,9 +21,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1E3A8A"
       },
       "package": "com.vara.app",
+      "versionCode": 1,
       "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
@@ -33,12 +34,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "react-native-google-mobile-ads"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "vara-app"
-      }
-    }
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ]
+    ]
   }
 }

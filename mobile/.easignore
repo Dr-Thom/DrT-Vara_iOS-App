@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+assets/vara-icon.html
+assets/vara-icon-v2.html
+assets/vara-icon-final.html

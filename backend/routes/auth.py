@@ -109,7 +109,11 @@ async def register(user_data: UserCreate, response: Response):
             "total_earned": user_doc.total_earned,
             "total_withdrawn": user_doc.total_withdrawn,
             "tasks_completed": user_doc.tasks_completed,
-            "bonus_unlocked": user_doc.bonus_unlocked
+            "bonus_unlocked": user_doc.bonus_unlocked,
+            # Also return tokens in body for mobile clients (they can't read httpOnly cookies)
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer"
         }
         
     except HTTPException:
@@ -150,7 +154,7 @@ async def login(credentials: UserLogin, response: Response):
             httponly=True,
             secure=is_secure,
             samesite="lax",
-            max_age=900,
+            max_age=14400,  # 4 hours (aligned with register)
             path="/"
         )
         response.set_cookie(
@@ -174,7 +178,11 @@ async def login(credentials: UserLogin, response: Response):
             "total_earned": user.get("total_earned", 0.0),
             "total_withdrawn": user.get("total_withdrawn", 0.0),
             "tasks_completed": user.get("tasks_completed", 0),
-            "bonus_unlocked": user.get("bonus_unlocked", False)
+            "bonus_unlocked": user.get("bonus_unlocked", False),
+            # Also return tokens in body for mobile clients (they can't read httpOnly cookies)
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer"
         }
         
     except HTTPException:
@@ -197,8 +205,16 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
 @router.post("/refresh")
 async def refresh(request: Request, response: Response):
-    """Refresh access token"""
+    """Refresh access token. Accepts refresh token via cookie (web) or Authorization header (mobile)."""
+    # Try cookie first (web clients)
     refresh_token = request.cookies.get("refresh_token")
+    
+    # Fallback to Authorization header (mobile clients)
+    if not refresh_token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            refresh_token = auth_header[7:]
+    
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token not found")
     
@@ -223,8 +239,9 @@ async def refresh(request: Request, response: Response):
         httponly=True,
         secure=is_secure,
         samesite="lax",
-        max_age=900,
+        max_age=14400,  # 4 hours
         path="/"
     )
     
-    return {"message": "Token refreshed"}
+    # Return access_token in body too for mobile clients
+    return {"message": "Token refreshed", "access_token": access_token, "token_type": "bearer"}

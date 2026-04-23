@@ -29,6 +29,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const data = await authAPI.login(email, password);
+    // Save tokens for mobile (cookies aren't readable)
+    if (data.access_token) {
+      await AsyncStorage.setItem('accessToken', data.access_token);
+    }
+    if (data.refresh_token) {
+      await AsyncStorage.setItem('refreshToken', data.refresh_token);
+    }
     setUser(data);
     await AsyncStorage.setItem('user', JSON.stringify(data));
     return data;
@@ -36,6 +43,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, name) => {
     const data = await authAPI.register(email, password, name);
+    // Save tokens for mobile (cookies aren't readable)
+    if (data.access_token) {
+      await AsyncStorage.setItem('accessToken', data.access_token);
+    }
+    if (data.refresh_token) {
+      await AsyncStorage.setItem('refreshToken', data.refresh_token);
+    }
     setUser(data);
     await AsyncStorage.setItem('user', JSON.stringify(data));
     return data;

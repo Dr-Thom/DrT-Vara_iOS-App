@@ -238,3 +238,40 @@ Build a landing page for VARA - an app where users can earn USD from their phone
 - Only dynamic data (waitlist) connected to backend
 - Frontend already optimized for conversions
 - Backend focused on data collection and validation
+
+
+---
+
+## 📱 Mobile App (React Native / Expo) — Updated Feb 2026
+
+### Build Readiness (Feb 23, 2026)
+- ✅ `/app/mobile/app.json` configured with correct splash path, adaptive icon, Google Mobile Ads plugin (android+iOS App IDs)
+- ✅ `/app/mobile/eas.json` created with `preview` (APK) and `production` (AAB) build profiles
+- ✅ Custom ADA-compliant app icon rendered to `icon.png` / `adaptive-icon.png` / `splash-icon.png` @ 1024x1024 PNG from `vara-icon-final.svg`
+- ✅ Dependencies aligned with Expo SDK 54 (expo-doctor: 17/17 checks passing)
+- ✅ Stale `package-lock.json` removed; `yarn.lock` is the single source of truth for EAS
+- ✅ Backend `/api/auth/login`, `/api/auth/register`, `/api/auth/refresh` now return `access_token` + `refresh_token` in the response body (required for React Native, which can't read httpOnly cookies)
+- ✅ Mobile `AuthContext` persists tokens to AsyncStorage on login/register
+- ✅ Web auth (cookie-based) unchanged and still functional
+- ✅ Access-token cookie max_age unified to 4 hours across login/register/refresh
+
+### Current AdMob Config
+- **Test IDs** in `/app/mobile/config.js` and `/app/mobile/app.json`
+- Real IDs pending Google Support resolution of user's AdMob account country mismatch
+
+### What Ships in the APK/AAB
+- Login / Signup, Dashboard, Tasks ($0.10 each), Withdrawal ($5 min), $1 bonus at 10 tasks
+- Banner ads on dashboard & tasks
+- Rewarded video ads before task completion
+- Interstitial ad every 3 tasks
+
+### User Action Required
+- Run from desktop: `eas login` → `eas init` → `eas build -p android --profile preview` (APK) → `eas build -p android --profile production` (AAB)
+- Full instructions: `/app/MOBILE_APP_BUILD_INSTRUCTIONS.md`
+
+### Backlog / Next Tasks
+- **P0**: User runs EAS build commands on desktop, receives APK, installs, validates
+- **P1**: User provides real AdMob IDs; update `config.js` + `app.json`, rebuild AAB
+- **P1**: Google Play Developer account registration ($25)
+- **P2**: Upload AAB to Play Store; use `/app/PLAY_STORE_LISTING.md` + `/app/PRIVACY_POLICY.md` + `icon.png` for listing
+- **P2**: Post-launch analytics + revenue tracking
