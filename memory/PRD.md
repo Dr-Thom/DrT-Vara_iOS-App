@@ -380,3 +380,76 @@ Aligned web + mobile with user's expanded build spec:
 Admin balance went $5.88 → $10.91 after 3 fresh friends completed 1 task each. Delta = $5.03 (3×$0.01 referral + $5.00 super bonus) ✓
 
 - Frontend: Initial render bug caught by testing agent (missing Trophy/Crown/Medal imports + state hooks) — fixed inside iteration. Verified working: admin rank 1 with Crown + YOU badge, masked email, 7 friends, $1.23 earned. Month/All-time toggle works.
+
+
+---
+
+## 🧠 v2.4 — Bonus Ladder + Trust Score + Daily Streak (Feb 24, 2026)
+
+Aligned VARA with the user's 4-engine architecture spec (Phase 1 → Phase 2 retention layer).
+
+### Updated Bonus Ladder
+Replaces `$1@5, $1 every 10` with explicit milestones:
+| Tasks | Bonus |
+|-------|-------|
+| 5 | $1 |
+| 10 | $2 |
+| 25 | $5 |
+| 50 | $10 |
+| 100 | $25 |
+| +100 | +$25 repeating |
+
+Source of truth: `/app/backend/utils/economics.py` (`total_bonuses_earned`, `bonus_awarded_for_completion`, `next_bonus_milestone`).
+
+### Daily Streak System
+- `current_streak`, `longest_streak`, `last_active_date` on user
+- Incremented when user completes a task on a new UTC date; reset to 1 on gap
+- **Multiplier tiers** applied to base task reward only (NOT milestone bonuses):
+  - 3 days → 1.1×
+  - 7 days → 1.25× (+5 trust one-time)
+  - 14 days → 1.5×
+- Logic in `/app/backend/utils/streak.py`
+
+### Trust Score System
+- Starts at **50**, range [0, 100]
+- Positive events: +1/task, +5 crossing 7-day streak, +2 per successful withdrawal
+- Negative events (hooks defined, not yet applied): −10 failed withdrawal, −20 fraud flag
+- **Tiers gate withdrawals**:
+  - Low (0-49): 48h hold, $10/24h cap
+  - Building (50-74): 24h hold, $25/24h cap
+  - Trusted (75+): Instant, $100/24h cap
+- Logic in `/app/backend/utils/trust.py`
+
+### New Endpoint
+`GET /api/users/me/stats` returns `{trust, streak, bonuses}` — used by frontend ProgressionStrip
+
+### UI
+- **Web**: New `ProgressionStrip` component (3 cards: Trust 📊, Streak 🔥, Next Milestone 🎯) at top of Dashboard
+- **Web**: Withdrawal page now shows trust-tier info card with delay + daily cap
+- **Mobile**: Mirror component `/app/mobile/components/ProgressionStrip.js` wired into DashboardScreen
+- Bonus progress bar header updated to show next dollar amount ("Progress to Next $2 Milestone")
+
+### Testing
+- Backend: **51/51 pytest pass** (18 new iter7 tests + 33 regression)
+- Frontend: After testing agent fixed 2 missing imports in Dashboard.jsx (my search_replace didn't apply), all 3 progression cards render with live API data and 0 console errors
+- Bonus math verified exact: task #5 → $1.10 reward, task #10 → $2.10 reward, total $4.00 after 10 fresh tasks
+- Streak verified: same-day no-increment, 3-day gap resets to 1, multiplier correctly applied
+- Tier gating verified: building tier $20 + $10 request blocked with "Daily cap $25" message
+
+### Architecture Progress (vs user's spec)
+Phase 1 (Bare Minimum) ✅ Task feed, wallet, basic bonus, simple referrals
+Phase 2 (Optimization Layer) — **partial**:
+- ✅ Trust scoring
+- ✅ Streak retention loop
+- ⏳ Task ranking engine (next)
+- ⏳ User segmentation
+- ⏳ Ad mediation
+Phase 3 (Scale Layer) — not started (offerwalls, AI matching, dynamic pricing)
+
+### Backlog for Next Round
+- **P1** Task ranking engine (score = revenue×0.4 + completion×0.3 + retention×0.2 − fraud×0.3) per user
+- **P1** User segmentation (new → easy tasks + high ad freq, active → balanced, trusted → premium offers)
+- **P2** Admin KPI dashboard (DAU, retention D1/D7, fraud rate)
+- **P2** Fraud signal detection (VPN, multi-account fingerprint)
+- **P2** Make /api/auth/refresh return trust/streak (currently only /me does)
+- **P3** Offerwall integration, ad mediation, dynamic pricing
