@@ -42,7 +42,7 @@ class UserDB(BaseModel):
     total_withdrawn: float = 0.0  # Lifetime withdrawals
     tasks_completed: int = 0
     bonus_unlocked: bool = False  # Kept for backwards compatibility (true once >=5 tasks)
-    bonuses_earned: int = 0  # Count of $1 bonuses received (at tasks 5, 15, 25...)
+    bonuses_earned: int = 0  # Count of bonus drops received
     completed_task_ids: List[str] = []
     # Referral system
     referral_code: Optional[str] = None  # This user's unique referral code
@@ -51,6 +51,12 @@ class UserDB(BaseModel):
     referral_earnings: float = 0.0  # Total earned from referrals
     referred_count: int = 0  # How many users this user has referred
     referrer_earnings_paid: float = 0.0  # How much this user has paid to their referrer (capped at $10)
+    # Trust system
+    trust_score: int = 50
+    # Streak system
+    current_streak: int = 0
+    longest_streak: int = 0
+    last_active_date: Optional[datetime] = None  # Date of last earning action
     created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
 
     class Config:

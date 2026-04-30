@@ -131,22 +131,24 @@ class TestBonusEconomics:
         assert "bonus" in res["message"].lower()
         assert res["bonus_unlocked"] is True
 
-    def test_tasks_6_to_14_no_bonus(self, fresh_user):
+    def test_tasks_6_to_9_no_bonus(self, fresh_user):
+        # Iter7 ladder: (5,$1)(10,$2)(25,$5)(50,$10)(100,$25). Tasks 6-9 → $0.10 only.
         s = fresh_user
-        for i in range(5, 14):
+        for i in range(5, 9):
             res = self._complete(s, s._tasks[i]["_id"])
             assert res["tasks_completed"] == i + 1
             assert abs(res["reward_earned"] - 0.10) < 0.001, f"Task #{i+1} should reward only $0.10"
 
-    def test_task_15_awards_second_bonus(self, fresh_user):
+    def test_task_10_awards_2_dollar_bonus(self, fresh_user):
+        # Iter7 ladder: task #10 → +$2 bonus. Tasks 1..9 already completed by previous tests.
         s = fresh_user
-        res = self._complete(s, s._tasks[14]["_id"])
-        assert res["tasks_completed"] == 15
-        assert abs(res["reward_earned"] - 1.10) < 0.001, f"Task #15 should award $1.10, got {res['reward_earned']}"
-        # total earnings should be 15*0.10 + 2*1.0 = 3.50
+        res = self._complete(s, s._tasks[9]["_id"])
+        assert res["tasks_completed"] == 10
+        assert abs(res["reward_earned"] - 2.10) < 0.001, f"Task #10 should award $2.10, got {res['reward_earned']}"
         me = s.get(f"{API}/auth/me").json()
         assert me["bonuses_earned"] == 2
-        assert abs(me["total_earned"] - 3.50) < 0.01, f"Total earned should be $3.50, got {me['total_earned']}"
+        # 10 × $0.10 + $1 (#5) + $2 (#10) = $4.00
+        assert abs(me["total_earned"] - 4.00) < 0.01, f"Total earned should be $4.00, got {me['total_earned']}"
 
 
 # ---------- Referral system ----------

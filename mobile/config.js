@@ -18,12 +18,9 @@ export const ADMOB_CONFIG = {
   REWARDED_AD_UNIT: 'ca-app-pub-3940256099942544/5224354917',
 };
 
-// App Configuration (keep in sync with backend /app/backend/routes/tasks.py)
+// App Configuration (keep in sync with backend /app/backend/utils/economics.py)
 export const APP_CONFIG = {
   REWARD_PER_TASK: 0.10,
-  BONUS_AMOUNT: 1.0,
-  FIRST_BONUS_AT: 5,                // First $1 bonus at task #5
-  RECURRING_BONUS_INTERVAL: 10,     // Then every 10 tasks: #15, #25, #35...
   TASKS_BEFORE_INTERSTITIAL: 3,     // Show interstitial every 3 tasks
   MINIMUM_WITHDRAWAL: 5.0,          // $5.00 minimum withdrawal
 
@@ -32,16 +29,60 @@ export const APP_CONFIG = {
   REFERRAL_CAP: 10.0,               // Capped at $10 per referred user
 };
 
-// Compute cumulative bonuses earned at a given task count
-export function computeBonusesEarned(tasksCompleted) {
-  if (tasksCompleted < APP_CONFIG.FIRST_BONUS_AT) return 0;
-  return 1 + Math.max(0, Math.floor((tasksCompleted - APP_CONFIG.FIRST_BONUS_AT) / APP_CONFIG.RECURRING_BONUS_INTERVAL));
+// Bonus milestone ladder — must match backend
+export const BONUS_MILESTONES = [
+  { threshold: 5, amount: 1 },
+  { threshold: 10, amount: 2 },
+  { threshold: 25, amount: 5 },
+  { threshold: 50, amount: 10 },
+  { threshold: 100, amount: 25 },
+];
+export const RECURRING_BONUS = { interval: 100, amount: 25 };
+
+// Streak tiers
+export const STREAK_TIERS = [
+  { days: 14, multiplier: 1.5, label: 'Blazing' },
+  { days: 7, multiplier: 1.25, label: 'Hot' },
+  { days: 3, multiplier: 1.1, label: 'Warming' },
+];
+
+export function streakMultiplier(days) {
+  for (const t of STREAK_TIERS) if (days >= t.days) return t.multiplier;
+  return 1.0;
 }
 
-// Compute the next task number that will award a bonus
-export function nextBonusThreshold(tasksCompleted) {
-  if (tasksCompleted < APP_CONFIG.FIRST_BONUS_AT) return APP_CONFIG.FIRST_BONUS_AT;
-  const since = tasksCompleted - APP_CONFIG.FIRST_BONUS_AT;
-  const nextOffset = Math.floor(since / APP_CONFIG.RECURRING_BONUS_INTERVAL) + 1;
-  return APP_CONFIG.FIRST_BONUS_AT + nextOffset * APP_CONFIG.RECURRING_BONUS_INTERVAL;
+// Next bonus milestone helper
+export function nextBonusMilestone(tasksCompleted) {
+  for (const m of BONUS_MILESTONES) {
+    if (tasksCompleted < m.threshold) return m;
+  }
+  const last = BONUS_MILESTONES[BONUS_MILESTONES.length - 1].threshold;
+  const nextHundred = (Math.floor(tasksCompleted / RECURRING_BONUS.interval) + 1) * RECURRING_BONUS.interval;
+  return { threshold: nextHundred, amount: RECURRING_BONUS.amount };
 }
+
+// Trust tier helper
+export function trustTier(score) {
+  if (score >= 75) return { key: 'trusted', label: 'Trusted', color: '#10B981' };
+  if (score >= 50) return { key: 'building', label: 'Building', color: '#3B82F6' };
+  return { key: 'low', label: 'New', color: '#F59E0B' };
+}
+
+// Legacy cumulative bonus count (some mobile screens still reference this)
+export function computeBonusesEarned(tasksCompleted) {
+  let count = 0;
+  for (const m of BONUS_MILESTONES) if (tasksCompleted >= m.threshold) count += 1;
+  const last = BONUS_MILESTONES[BONUS_MILESTONES.length - 1].threshold;
+  if (tasksCompleted > last) count += Math.floor((tasksCompleted - last) / RECURRING_BONUS.interval);
+  return count;
+}
+
+// Legacy next threshold helper (mobile Dashboard uses this for progress bar)
+export function nextBonusThreshold(tasksCompleted) {
+  return nextBonusMilestone(tasksCompleted).threshold;
+}
+
+// Keep APP_CONFIG backwards-compatible for screens that still read these fields
+APP_CONFIG.BONUS_AMOUNT = 1.0;
+APP_CONFIG.FIRST_BONUS_AT = 5;
+APP_CONFIG.RECURRING_BONUS_INTERVAL = 10;

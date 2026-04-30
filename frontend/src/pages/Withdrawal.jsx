@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { DollarSign, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { DollarSign, CheckCircle2, AlertCircle, Loader2, Clock, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import API_CONFIG from '../config/api';
@@ -17,9 +17,16 @@ const Withdrawal = () => {
   const [accountDetails, setAccountDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [withdrawalSuccess, setWithdrawalSuccess] = useState(false);
+  const [trust, setTrust] = useState(null);
+
+  useEffect(() => {
+    axios.get(`${API_CONFIG.BACKEND_URL}/api/users/me/stats`, { withCredentials: true })
+      .then((r) => setTrust(r.data?.trust || null))
+      .catch(() => setTrust(null));
+  }, []);
 
   const currentBalance = user?.earnings || 0;
-  const minWithdrawal = currentBalance >= 5 ? 5 : currentBalance;
+  const minWithdrawal = trust?.min_withdrawal ?? 5;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,6 +116,42 @@ const Withdrawal = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Trust Tier Info */}
+      {trust && (
+        <Card
+          className={`border-2 ${
+            trust.tier === 'trusted' ? 'border-green-300 bg-green-50'
+            : trust.tier === 'building' ? 'border-blue-200 bg-blue-50'
+            : 'border-amber-200 bg-amber-50'
+          }`}
+          data-testid="withdrawal-trust-info"
+        >
+          <CardContent className="p-4 flex items-start gap-3">
+            {trust.withdrawal_delay_hours === 0 ? (
+              <ShieldCheck className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <Clock className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1 text-sm">
+              <div className="font-semibold text-gray-900 mb-1 capitalize">
+                {trust.tier} tier · Trust score {trust.score}/100
+              </div>
+              {trust.withdrawal_delay_hours === 0 ? (
+                <p className="text-gray-700">
+                  <strong>Instant withdrawals.</strong> Up to ${trust.max_daily_withdrawal}/24h.
+                </p>
+              ) : (
+                <p className="text-gray-700">
+                  Your withdrawals have a <strong>{trust.withdrawal_delay_hours}h hold</strong>.
+                  Daily cap: <strong>${trust.max_daily_withdrawal}</strong>.
+                  Complete tasks to raise your trust score and unlock instant withdrawals at 75+.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Withdrawal Form */}
       <Card>

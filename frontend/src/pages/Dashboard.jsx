@@ -6,20 +6,18 @@ import { DollarSign, CheckCircle, Gift, TrendingUp, ArrowRight, Users } from 'lu
 import { useNavigate } from 'react-router-dom';
 import TrustFeed from '../components/TrustFeed';
 import SuperBonusChallenge from '../components/SuperBonusChallenge';
+import ProgressionStrip from '../components/ProgressionStrip';
+import { nextBonusMilestone } from '../config/economics';
 
 const FIRST_BONUS_AT = 5;
-const RECURRING_BONUS_INTERVAL = 10;
-const BONUS_AMOUNT = 1.0;
+const BONUS_AMOUNT = 1.0;  // Kept for "Welcome" copy — actual amount comes from nextBonusMilestone
 
 /**
- * Given current tasks_completed, return the task number of the NEXT bonus.
- * 0 → 5, 3 → 5, 5 → 15, 12 → 15, 15 → 25, etc.
+ * Given current tasks_completed, return the next bonus {threshold, amount}.
+ * Uses new milestone ladder: 5→$1, 10→$2, 25→$5, 50→$10, 100→$25, then $25/100.
  */
-function nextBonusThreshold(tasksCompleted) {
-  if (tasksCompleted < FIRST_BONUS_AT) return FIRST_BONUS_AT;
-  const since = tasksCompleted - FIRST_BONUS_AT;
-  const nextOffset = Math.floor(since / RECURRING_BONUS_INTERVAL) + 1;
-  return FIRST_BONUS_AT + nextOffset * RECURRING_BONUS_INTERVAL;
+function getNextBonus(tasksCompleted) {
+  return nextBonusMilestone(tasksCompleted);
 }
 
 const Dashboard = () => {
@@ -28,21 +26,26 @@ const Dashboard = () => {
 
   const tasksCompleted = user?.tasks_completed || 0;
   const bonusesEarned = user?.bonuses_earned || 0;
-  const nextThreshold = nextBonusThreshold(tasksCompleted);
+  const nextBonus = getNextBonus(tasksCompleted);
+  const nextThreshold = nextBonus.threshold;
+  const nextAmount = nextBonus.amount;
   const tasksRemaining = Math.max(0, nextThreshold - tasksCompleted);
 
-  // Progress bar: show progress toward next threshold within its window
-  const windowStart = tasksCompleted < FIRST_BONUS_AT
-    ? 0
-    : nextThreshold - RECURRING_BONUS_INTERVAL;
-  const windowSize = nextThreshold - windowStart;
+  // Progress bar window: from previous milestone to the next
+  const MILESTONES = [0, 5, 10, 25, 50, 100];
+  let windowStart = 0;
+  for (const m of MILESTONES) {
+    if (m < nextThreshold && m <= tasksCompleted) windowStart = m;
+  }
+  if (tasksCompleted >= 100) windowStart = Math.floor(tasksCompleted / 100) * 100;
+  const windowSize = Math.max(1, nextThreshold - windowStart);
   const progress = Math.min(100, ((tasksCompleted - windowStart) / windowSize) * 100);
 
   const headerMsg = tasksCompleted === 0
     ? `Complete your first 5 tasks to earn a $${BONUS_AMOUNT.toFixed(2)} bonus!`
     : tasksCompleted < FIRST_BONUS_AT
       ? `Just ${tasksRemaining} more task${tasksRemaining !== 1 ? 's' : ''} for your first $${BONUS_AMOUNT.toFixed(2)} bonus!`
-      : `You've earned ${bonusesEarned} bonus${bonusesEarned !== 1 ? 'es' : ''}! Next bonus at task #${nextThreshold}.`;
+      : `You've earned ${bonusesEarned} bonus${bonusesEarned !== 1 ? 'es' : ''}! Next: $${nextAmount} at task #${nextThreshold}.`;
 
   return (
     <div className="space-y-6">
@@ -129,6 +132,9 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Progression strip: trust / streak / next bonus */}
+      <ProgressionStrip />
+
       {/* Weekly Super Bonus Challenge */}
       <SuperBonusChallenge />
 
@@ -137,7 +143,7 @@ const Dashboard = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-600" />
-            Progress to Next ${BONUS_AMOUNT.toFixed(2)} Bonus
+            Progress to Next ${nextAmount.toFixed(0)} Milestone
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -158,7 +164,7 @@ const Dashboard = () => {
               />
             </div>
             <p className="text-sm text-gray-600">
-              💡 {tasksRemaining} more task{tasksRemaining !== 1 ? 's' : ''} → unlock another ${BONUS_AMOUNT.toFixed(2)}.
+              💡 {tasksRemaining} more task{tasksRemaining !== 1 ? 's' : ''} → unlock ${nextAmount}.
             </p>
           </div>
         </CardContent>

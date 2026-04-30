@@ -113,6 +113,13 @@ export const statsAPI = {
   },
 };
 
+export const usersAPI = {
+  getMyStats: async () => {
+    const response = await api.get('/api/users/me/stats');
+    return response.data;
+  },
+};
+
 export const tasksAPI = {
   getTasks: async () => {
     const response = await api.get('/api/tasks/');

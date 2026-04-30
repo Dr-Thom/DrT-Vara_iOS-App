@@ -9,6 +9,9 @@ from typing import List
 from datetime import datetime
 
 from utils.weekly_challenge import record_qualifying_referral
+from utils.economics import bonus_awarded_for_completion, next_bonus_milestone, bonuses_earned_count
+from utils.streak import update_streak_on_activity, streak_multiplier, streak_tier_label
+from utils.trust import TRUST_PER_TASK, TRUST_PER_7DAY_STREAK, clamp_trust
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +22,10 @@ mongo_url = os.environ.get('MONGO_URL')
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'vara_db')]
 
-# Bonus economics
-BONUS_AMOUNT = 1.0             # $1 USD bonus
-FIRST_BONUS_AT = 5             # First bonus at task #5
-RECURRING_BONUS_INTERVAL = 10  # Then every 10 tasks after (15, 25, 35...)
+# Kept for backwards compatibility (some tests import these)
+BONUS_AMOUNT = 1.0
+FIRST_BONUS_AT = 5
+RECURRING_BONUS_INTERVAL = 10
 
 # Referral economics
 REFERRAL_PCT = 0.10            # Referrer earns 10% of referred user's earnings
@@ -141,42 +144,59 @@ async def complete_task(
     completion: TaskCompletionRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Mark task as completed and award earnings + bonus + referral payout."""
+    """Mark task as completed and award earnings + bonus + referral payout + streak + trust."""
     try:
         if not ObjectId.is_valid(completion.task_id):
             raise HTTPException(status_code=400, detail="Invalid task ID")
-        
+
         task_id = ObjectId(completion.task_id)
         user_id = ObjectId(current_user["_id"])
-        
+
         task = await db.tasks.find_one({"_id": task_id})
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         if not task.get("is_active", True):
             raise HTTPException(status_code=400, detail="Task is no longer active")
-        
+
         user = await db.users.find_one({"_id": user_id})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
+
         # Check if task already completed
         completed_task_ids = user.get("completed_task_ids", [])
         if str(task_id) in completed_task_ids:
             raise HTTPException(status_code=400, detail="Task already completed")
-        
-        # Compute rewards
-        reward = float(task.get("reward_amount", 0.10))
+
+        # Base reward
+        base_reward = float(task.get("reward_amount", 0.10))
         old_tasks_completed = user.get("tasks_completed", 0)
         new_tasks_completed = old_tasks_completed + 1
-        
-        # Bonus: $1 at task 5, then every 10 after
-        old_bonus_count = compute_bonuses_earned(old_tasks_completed)
-        new_bonus_count = compute_bonuses_earned(new_tasks_completed)
-        bonus_delta = new_bonus_count - old_bonus_count  # 0 or 1
-        bonus_this_call = bonus_delta * BONUS_AMOUNT
-        
-        total_reward_this_call = reward + bonus_this_call
-        
+
+        # STREAK — compute BEFORE reward (so today's multiplier reflects current streak)
+        today = datetime.utcnow().date()
+        new_streak, new_longest, is_new_day = update_streak_on_activity(
+            user.get("last_active_date"),
+            user.get("current_streak", 0),
+            user.get("longest_streak", 0),
+            today=today,
+        )
+        multiplier = streak_multiplier(new_streak)
+        # Apply multiplier to task reward (but NOT to milestone bonuses — keeps bonuses predictable)
+        reward = round(base_reward * multiplier, 4)
+
+        # BONUS LADDER — new formula: 5→$1, 10→$2, 25→$5, 50→$10, 100→$25, then $25/100
+        bonus_this_call = bonus_awarded_for_completion(new_tasks_completed)
+        new_bonuses_earned_total = bonuses_earned_count(new_tasks_completed)
+        total_reward_this_call = round(reward + bonus_this_call, 4)
+
+        # TRUST — +1 per task; +5 bonus on crossing into 7-day streak
+        trust_delta = TRUST_PER_TASK
+        if new_streak == 7 and user.get("current_streak", 0) < 7:
+            trust_delta += TRUST_PER_7DAY_STREAK
+        old_trust = user.get("trust_score", 50)
+        new_trust = clamp_trust(old_trust + trust_delta)
+        trust_gained = new_trust - old_trust
+
         # Update user atomically
         await db.users.update_one(
             {"_id": user_id},
@@ -185,47 +205,57 @@ async def complete_task(
                     "earnings": total_reward_this_call,
                     "total_earned": total_reward_this_call,
                     "tasks_completed": 1,
-                    "bonuses_earned": bonus_delta,
                 },
                 "$set": {
-                    "bonus_unlocked": new_tasks_completed >= FIRST_BONUS_AT,
+                    "bonus_unlocked": new_tasks_completed >= 5,
+                    "bonuses_earned": new_bonuses_earned_total,
+                    "current_streak": new_streak,
+                    "longest_streak": new_longest,
+                    "last_active_date": datetime(today.year, today.month, today.day),
+                    "trust_score": new_trust,
                 },
                 "$push": {
                     "completed_task_ids": str(task_id)
                 }
             }
         )
-        
+
         # Increment task completion count (global)
         await db.tasks.update_one(
             {"_id": task_id},
             {"$inc": {"completion_count": 1}}
         )
-        
+
         # Pay referrer 10% of the total earned on this call (capped at $10 per referred user)
         await pay_referrer(user, total_reward_this_call)
-        
+
         # Fetch refreshed user for accurate balance in response
         refreshed = await db.users.find_one({"_id": user_id})
-        
+
         logger.info(
-            f"User {user['email']} completed task '{task['title']}' - earned ${reward}"
-            + (f" + ${bonus_this_call} bonus (#{new_bonus_count})" if bonus_this_call > 0 else "")
+            f"User {user['email']} completed task '{task['title']}' — "
+            f"${reward:.4f} ({multiplier}x) "
+            + (f"+ ${bonus_this_call} bonus " if bonus_this_call > 0 else "")
+            + (f"+ {trust_gained} trust " if trust_gained > 0 else "")
+            + (f"(streak: {new_streak} days)" if new_streak > 1 else "")
         )
-        
-        msg = f"Task completed! You earned ${reward:.2f}"
+
+        msg_parts = [f"You earned ${reward:.2f}"]
+        if multiplier > 1.0:
+            msg_parts[0] += f" ({streak_tier_label(new_streak)} {multiplier}x streak!)"
         if bonus_this_call > 0:
-            msg += f" + ${bonus_this_call:.2f} bonus!"
-        
+            msg_parts.append(f"+ ${bonus_this_call:.0f} milestone bonus!")
+        msg = " ".join(msg_parts)
+
         return TaskCompletionResponse(
             success=True,
             message=msg,
             reward_earned=total_reward_this_call,
             total_earnings=refreshed.get("earnings", 0.0),
             tasks_completed=new_tasks_completed,
-            bonus_unlocked=new_tasks_completed >= FIRST_BONUS_AT,
+            bonus_unlocked=new_tasks_completed >= 5,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:

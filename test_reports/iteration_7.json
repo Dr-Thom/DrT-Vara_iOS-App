@@ -1,0 +1,79 @@
+{
+  "summary": "Iteration 7 testing: trust score, streak, bonus ladder, tier-based withdrawal. Backend 51/51 pytest pass (18 NEW iter7 tests + 33 regression). Frontend: found CRITICAL P0 bug — Dashboard.jsx was missing imports for `nextBonusMilestone` and `ProgressionStrip`, causing the entire /app/dashboard page to crash with 'nextBonusMilestone is not defined' uncaught runtime error. Testing agent applied the missing-import fix (single-line scope) and verified all 3 ProgressionStrip cards now render correctly (Trust 52/100 Building tier · 24h hold · Max $25/24h, Streak 0 days, Next Milestone $2 at task #10). Withdrawal trust info card renders correctly with tier label + delay + cap copy.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/refresh", "issue": "Spec mentions /refresh should return trust_score/current_streak/longest_streak but the implementation returns only {message, access_token, token_type}. /login, /register, /me DO return them correctly. Low priority since /refresh is for renewing tokens, not for fetching user state — frontend can call /me after refresh."}
+    ]
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Dashboard.jsx", "issue": "FIXED by testing agent. Missing imports caused full page crash: `nextBonusMilestone` (used in getNextBonus) and `ProgressionStrip` (rendered as <ProgressionStrip />) were never imported. Added: `import ProgressionStrip from '../components/ProgressionStrip';` and `import { nextBonusMilestone } from '../config/economics';`. After fix, dashboard renders cleanly with 0 console errors.", "selector": "/app/dashboard route", "priority": "P0 (was breaking the entire dashboard)"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_iteration7_progression.py",
+    "/app/backend/tests/test_vara_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+
+  "action_items": [
+    "Verify the import fix on Dashboard.jsx is intentional and committed",
+    "(Optional) Have /api/auth/refresh include trust_score/current_streak/longest_streak in body to match spec exactly, OR update spec to clarify /me is canonical for user state",
+    "Mobile (/app/mobile) was not testable in this env — main agent should ensure ProgressionStrip equivalent there does not have the same missing-import issue"
+  ],
+
+  "critical_code_review_comments": [
+    "PRECISE BONUS MATH VERIFIED: After 10 fresh tasks → exactly $4.00 ($1×10 task + $1@5 + $2@10). Task #5 reward_earned=1.10, task #10 reward_earned=2.10. bonuses_earned_count returns 2 at task #10. next_bonus_milestone after 10 → {25, $5}. All exact.",
+    "STREAK MULTIPLIER APPLIES CORRECTLY: At streak=3, 0.10×1.1 = $0.11. At streak=7, 0.10×1.25 = $0.125. At streak=14 with task #5 hit, reward = 0.10×1.5 + 1.00 = $1.15 (multiplier on base only, NOT on milestone bonus — confirmed).",
+    "STREAK GAP RESETS: 3-day gap with last_active_date=3 days ago resets current_streak to 1, preserves longest_streak (5). Same-day repeats keep streak unchanged.",
+    "TRUST: +1 per task verified. +5 bonus on crossing into 7-day streak (50→56 confirmed: 1 task = +1 base + 5 streak crossing). +2 on successful withdrawal verified (50→52 after $5 withdraw).",
+    "TIER GATING: building tier (trust=50) → status='pending', message contains '24h hold'. Daily cap enforced: $20 + $10 attempt → 400 with 'limit'/'$25' error. trusted tier (trust=80) → status='approved', max_daily=$100, delay=0h.",
+    "LEDGER: withdrawal_requests document includes trust_tier_at_request, delay_hours, estimated_payout_at — good for audit trail.",
+    "FRONTEND DASHBOARD HAD MISSING IMPORTS: This is a serious oversight — both ProgressionStrip and nextBonusMilestone were used in JSX but not imported. The error message 'nextBonusMilestone is not defined' surfaced via the dev runtime overlay, but in production builds this would crash the page silently. Suggest enabling ESLint with no-undef rule pre-commit.",
+    "MINOR: Dashboard.jsx still has dead 'FIRST_BONUS_AT = 5; BONUS_AMOUNT = 1.0' constants that are no longer the source of truth — they could be removed for clarity since nextBonusMilestone now drives everything.",
+    "MINOR: utils/streak.py uses datetime.utcnow() (deprecated in 3.12+) — same comment as iter6. Not blocking.",
+    "MINOR: routes/users.py opens a separate AsyncIOMotorClient instead of reusing the one from server.py (also done in tasks.py, withdrawal.py). Functional but not DRY."
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_iteration7_progression.py (NEW — 18 tests, all pass)",
+    "/app/backend/tests/test_vara_api.py (updated 2 obsolete iter5 bonus-ladder tests to match new (5,$1)(10,$2) ladder)",
+    "/app/frontend/src/pages/Dashboard.jsx (added 2 missing imports: ProgressionStrip + nextBonusMilestone)"
+  ],
+
+  "success_rate": {
+    "backend": "100% (51/51 pytest tests pass — 18 new iter7 + 33 regression)",
+    "frontend": "100% after import fix (Dashboard ProgressionStrip 3/3 cards render with correct data; Withdrawal trust info card renders with tier+delay+cap copy; 0 console errors)"
+  },
+
+  "test_credentials": {
+    "admin": "admin@vara.com / vara_admin_2026"
+  },
+
+  "seed_data_creation": "18 fresh users registered as test_iter7_<uuid>@varatest.example.com. Several have last_active_date directly mutated in MongoDB to simulate yesterday/3-days-ago for streak tests. A few were granted earnings via direct $inc to test withdrawal flows. Admin trust_score may have shifted +2 from any successful withdrawal in earlier smoke tests; current legacy admin trust_score was 50 at start of this iteration (per main agent note) but main agent had bumped it to 100 manually then back. Final state of admin: trust=52 (per dashboard screenshot), balance $13.42, lifetime $18.42, 8 tasks done, 33 referrals.",
+
+  "verified_features": {
+    "stats_endpoint": "PASS auth gate (401/403), shape (trust+streak+bonuses+ladder)",
+    "bonus_ladder": "PASS exact math at #5 ($1.10) and #10 ($2.10); total $4.00 after 10 tasks",
+    "streak_logic": "PASS first-task=1, same-day no-increment, 3d=1.1×, 7d=1.25× + trust+5, 14d=1.5×, gap resets",
+    "trust_increments": "PASS +1/task, +2/successful withdrawal, clamped at 100",
+    "withdrawal_tier_gating": "PASS building 24h pending, building cap $25 enforced, trusted instant approved",
+    "auth_response_fields": "PASS trust_score+current_streak+longest_streak in /register, /login, /me. /refresh does NOT (minor)",
+    "frontend_progression_strip": "PASS (after import fix) all 3 cards render with correct data + testids",
+    "frontend_withdrawal_trust_info": "PASS renders 'Building Tier · Trust Score 52/100 · 24h hold · Daily cap: $25'"
+  },
+
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "main_agent_can_self_test": true,
+
+  "context_for_next_testing_agent": "Iteration 7 fully working AFTER applying 1 import-fix on /app/frontend/src/pages/Dashboard.jsx. The dashboard previously crashed with 'nextBonusMilestone is not defined' on every page load. New backend test file test_iteration7_progression.py (18 tests) covers stats endpoint, bonus ladder, streak (with DB last_active_date mutation), trust increments, and tier-based withdrawal flow. Old test_vara_api.py was patched (2 tests) to use new (5,$1)(10,$2) bonus ladder instead of the old (5,$1)(15,$1)(25,$1) ladder. Mobile not tested. Admin password and main creds unchanged.",
+
+  "rca_of_the_issue": "ROOT CAUSE of Dashboard crash: When iteration 7 was implemented, the agent added `<ProgressionStrip />` JSX into Dashboard.jsx and refactored getNextBonus() to call nextBonusMilestone(), but FORGOT to add the corresponding `import` statements for both symbols. The bug only surfaces at runtime (no static error in `yarn build` because React component trees are evaluated at render time). REPRO: log in as admin → navigate to /app/dashboard → React error overlay shows 'ReferenceError: nextBonusMilestone is not defined at getNextBonus (Dashboard.jsx)'. MITIGATION: Added `import ProgressionStrip from '../components/ProgressionStrip';` and `import { nextBonusMilestone } from '../config/economics';` at the top of Dashboard.jsx. Re-tested: 0 console errors, all 3 progression cards render with live API data."
+}

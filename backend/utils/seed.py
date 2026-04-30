@@ -38,6 +38,10 @@ async def seed_admin(db):
             "referral_earnings": 0.0,
             "referred_count": 0,
             "referrer_earnings_paid": 0.0,
+            "trust_score": 100,
+            "current_streak": 0,
+            "longest_streak": 0,
+            "last_active_date": None,
             "created_at": datetime.utcnow()
         })
         logger.info(f"Admin user created: {admin_email} (referral code: {code})")

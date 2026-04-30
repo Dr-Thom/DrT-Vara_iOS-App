@@ -141,6 +141,9 @@ async def register(user_data: UserCreate, response: Response):
             "referral_code": user_doc.referral_code,
             "referred_count": user_doc.referred_count,
             "referral_earnings": user_doc.referral_earnings,
+            "trust_score": user_doc.trust_score,
+            "current_streak": user_doc.current_streak,
+            "longest_streak": user_doc.longest_streak,
             # Also return tokens in body for mobile clients (they can't read httpOnly cookies)
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -214,6 +217,9 @@ async def login(credentials: UserLogin, response: Response):
             "referral_code": user.get("referral_code"),
             "referred_count": user.get("referred_count", 0),
             "referral_earnings": user.get("referral_earnings", 0.0),
+            "trust_score": user.get("trust_score", 50),
+            "current_streak": user.get("current_streak", 0),
+            "longest_streak": user.get("longest_streak", 0),
             # Also return tokens in body for mobile clients (they can't read httpOnly cookies)
             "access_token": access_token,
             "refresh_token": refresh_token,

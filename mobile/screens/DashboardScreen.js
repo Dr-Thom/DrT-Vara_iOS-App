@@ -88,6 +88,9 @@ const DashboardScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Progression strip */}
+      <ProgressionStrip />
+
       {/* Weekly Super Bonus Challenge */}
       <View style={{ marginHorizontal: 20, marginTop: 12 }}>
         <SuperBonusChallenge />
@@ -180,3 +183,4 @@ const styles = StyleSheet.create({
 });
 
 export default DashboardScreen;
+fault DashboardScreen;
