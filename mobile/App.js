@@ -1,10 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdProvider } from './contexts/AdContext';
-import mobileAds from 'react-native-google-mobile-ads';
-import { ADMOB_CONFIG } from './config';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -17,15 +15,7 @@ import ReferralsScreen from './screens/ReferralsScreen';
 
 const Stack = createNativeStackNavigator();
 
-// Initialize AdMob
-mobileAds()
-  .initialize()
-  .then((adapterStatuses) => {
-    console.log('AdMob initialized:', adapterStatuses);
-  })
-  .catch((error) => {
-    console.error('AdMob initialization failed:', error);
-  });
+// AdMob temporarily disabled — re-enable once Google account country issue is resolved.
 
 const AppNavigator = () => {
   const { user, loading } = useAuth();

@@ -1,27 +1,12 @@
+/**
+ * AdBanner — STUBBED (AdMob temporarily disabled to ship working APK).
+ * Will be re-enabled once Google AdMob account location issue is resolved.
+ */
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
-import { ADMOB_CONFIG } from '../config';
+import { View } from 'react-native';
 
-const AdBanner = ({ style }) => {
-  return (
-    <View style={[styles.container, style]}>
-      <BannerAd
-        unitId={ADMOB_CONFIG.BANNER_AD_UNIT}
-        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: false,
-        }}
-      />
-    </View>
-  );
+const AdBanner = () => {
+  return <View />;
 };
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-});
 
 export default AdBanner;
