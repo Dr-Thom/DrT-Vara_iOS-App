@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import AdBanner from '../components/AdBanner';
 import SuperBonusChallenge from '../components/SuperBonusChallenge';
+import ProgressionStrip from '../components/ProgressionStrip';
 import { APP_CONFIG, nextBonusThreshold } from '../config';
 
 const DashboardScreen = ({ navigation }) => {

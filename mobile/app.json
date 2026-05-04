@@ -2,7 +2,7 @@
   "expo": {
     "name": "VARA",
     "slug": "vara",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,7 +32,7 @@
         "backgroundColor": "#1E3A8A"
       },
       "package": "com.vara.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
     },
     "web": {
