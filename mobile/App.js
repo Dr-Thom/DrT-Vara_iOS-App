@@ -1,8 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdProvider } from './contexts/AdContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -89,12 +91,16 @@ const AppNavigator = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AdProvider>
-        <NavigationContainer>
-          <AppNavigator />
-        </NavigationContainer>
-      </AdProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AdProvider>
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
+          </AdProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
