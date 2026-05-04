@@ -28,30 +28,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const data = await authAPI.login(email, password);
-    // Save tokens for mobile (cookies aren't readable)
-    if (data.access_token) {
-      await AsyncStorage.setItem('accessToken', data.access_token);
-    }
-    if (data.refresh_token) {
-      await AsyncStorage.setItem('refreshToken', data.refresh_token);
-    }
+    // Use fetch-based safe login to avoid axios/Hermes native crashes on Android
+    const { safeLogin } = require('../services/safeAuth');
+    const data = await safeLogin(email, password);
     setUser(data);
-    await AsyncStorage.setItem('user', JSON.stringify(data));
     return data;
   };
 
   const register = async (email, password, name, referralCode) => {
-    const data = await authAPI.register(email, password, name, referralCode);
-    // Save tokens for mobile (cookies aren't readable)
-    if (data.access_token) {
-      await AsyncStorage.setItem('accessToken', data.access_token);
-    }
-    if (data.refresh_token) {
-      await AsyncStorage.setItem('refreshToken', data.refresh_token);
-    }
+    const { safeRegister } = require('../services/safeAuth');
+    const data = await safeRegister(email, password, name, referralCode);
     setUser(data);
-    await AsyncStorage.setItem('user', JSON.stringify(data));
     return data;
   };
 

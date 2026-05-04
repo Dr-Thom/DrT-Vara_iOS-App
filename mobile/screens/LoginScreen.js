@@ -26,9 +26,10 @@ const LoginScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      await login(email.toLowerCase(), password);
+      await login(email.toLowerCase().trim(), password);
     } catch (error) {
-      Alert.alert('Login Failed', error.response?.data?.detail || 'Invalid credentials');
+      const msg = (error && error.message) ? String(error.message) : 'Login failed';
+      Alert.alert('Login Failed', msg);
     } finally {
       setLoading(false);
     }
