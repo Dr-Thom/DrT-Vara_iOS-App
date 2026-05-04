@@ -23,6 +23,14 @@ Build a landing page for VARA - an app where users can earn USD from their phone
    - Needs: Transparency, good user experience, immediate rewards
 
 ## What's Been Implemented
+### 🛠 Mobile Build Fix (May 4, 2026) — OTA Update Crash
+- Problem: APK launched with red `Uncaught Error: java.io.IOException: Failed to download remote update`. The OTA fetch was failing because no JS bundle was published to the `preview` channel.
+- Fix: Disabled Expo OTA in `/app/mobile/app.json` (`updates.enabled: false`, `checkAutomatically: NEVER`, `runtimeVersion.policy: appVersion`). Bundle is now fully embedded in the APK.
+- Bumped `version` to `1.0.1` and Android `versionCode` to `2` so the new APK installs cleanly over the old one.
+- Right call for VARA's target regions (developing markets) — APK now opens instantly, offline-safe.
+- Action: User to run `git pull && eas build -p android --profile preview` on iMac, install fresh APK.
+
+
 
 ### ✅ Phase 1: Frontend Landing Page with Mock Data (Completed - Dec 7, 2025)
 - All conversion-optimized sections (Hero, How It Works, Bonus, Social Proof, Waitlist, FAQ, Footer)
