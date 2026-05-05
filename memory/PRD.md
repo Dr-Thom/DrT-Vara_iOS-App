@@ -28,7 +28,19 @@ Build a landing page for VARA - an app where users can earn USD from their phone
 - Fix: Disabled Expo OTA in `/app/mobile/app.json` (`updates.enabled: false`, `checkAutomatically: NEVER`, `runtimeVersion.policy: appVersion`). Bundle is now fully embedded in the APK.
 - Bumped `version` to `1.0.1` and Android `versionCode` to `2` so the new APK installs cleanly over the old one.
 - Right call for VARA's target regions (developing markets) — APK now opens instantly, offline-safe.
-- Action: User to run `git pull && eas build -p android --profile preview` on iMac, install fresh APK.
+
+### 🛠 Mobile Crash Fix (May 4, 2026) — Missing ProgressionStrip Import
+- Problem: APK launched, login worked, then Dashboard crashed with `ReferenceError: Property 'ProgressionStrip' doesn't exist`.
+- Fix: Added missing `import ProgressionStrip from '../components/ProgressionStrip'` in `screens/DashboardScreen.js`.
+- Bumped to `1.0.2` (versionCode 3). User confirmed dashboard fully renders with Trust/Streak/Next bonus cards + Weekly Super Bonus + balance.
+
+### 🚀 Push Notifications (May 4, 2026) — All 5 Notification Types Wired
+- Mobile: `expo-notifications` + `expo-device` installed (SDK 54-compatible versions). New `services/notifications.js` handles permissions, token registration, foreground banners, and tap-to-deep-link routing (`vara://tasks`, `vara://referrals`, etc.).
+- AuthContext registers token on login + on app open; unregisters on logout.
+- Backend: New `utils/push.py` (httpx + Expo Push API, batched ≤100, auto-cleans stale `DeviceNotRegistered` tokens). New `utils/notification_scheduler.py` (APScheduler hourly streak job that respects user's IANA `timezone`, Monday 9am UTC weekly super-bonus blast). Endpoints: `POST /api/users/push-token` (validates `ExponentPushToken[…]` format), `DELETE /api/users/push-token`.
+- Triggers wired in: bonus unlock (in `tasks.py`), referral payout (in `tasks.py` `pay_referrer`), withdrawal approved/pending (in `withdrawal.py`), daily streak reminder (scheduler), weekly super bonus (scheduler).
+- Bumped to `1.0.3` (versionCode 4) + `scheme: "vara"` for deep linking + expo-notifications plugin.
+- ⚠️ Android delivery requires Firebase google-services.json + FCM V1 service account key uploaded to EAS. Step-by-step in next user message.
 
 
 

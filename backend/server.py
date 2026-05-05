@@ -22,6 +22,7 @@ from routes.users import router as users_router
 
 # Import seed functions
 from utils.seed import seed_admin, seed_tasks
+from utils.notification_scheduler import start_scheduler
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -81,11 +82,17 @@ async def startup_event():
             {"_id": u["_id"]},
             {"$set": {"referral_code": code}}
         )
-    
+
+    # Start background notification scheduler
+    app.state.scheduler = start_scheduler(db)
+
     logger.info("VARA API started successfully")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    sched = getattr(app.state, "scheduler", None)
+    if sched:
+        sched.shutdown(wait=False)
     client.close()
 
 # Root endpoint

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdProvider } from './contexts/AdContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import { attachNotificationListeners } from './services/notifications';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -90,12 +91,25 @@ const AppNavigator = () => {
 };
 
 export default function App() {
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    const detach = attachNotificationListeners((screen, params) => {
+      try {
+        navRef.current?.navigate(screen, params);
+      } catch (e) {
+        console.warn('Nav from notification failed:', e?.message);
+      }
+    });
+    return detach;
+  }, []);
+
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
         <AuthProvider>
           <AdProvider>
-            <NavigationContainer>
+            <NavigationContainer ref={navRef}>
               <AppNavigator />
             </NavigationContainer>
           </AdProvider>

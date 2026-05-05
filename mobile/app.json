@@ -2,7 +2,8 @@
   "expo": {
     "name": "VARA",
     "slug": "vara",
-    "version": "1.0.2",
+    "scheme": "vara",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,9 +33,18 @@
         "backgroundColor": "#1E3A8A"
       },
       "package": "com.vara.app",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#1E3A8A",
+          "defaultChannel": "default"
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }

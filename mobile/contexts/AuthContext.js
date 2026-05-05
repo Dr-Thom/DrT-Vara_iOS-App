@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI } from '../services/api';
+import { registerForPushNotifications, unregisterPushNotifications } from '../services/notifications';
 
 const AuthContext = createContext({});
 
@@ -18,6 +19,8 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         const userData = await authAPI.getMe();
         setUser(userData);
+        // Refresh push token registration on app open
+        registerForPushNotifications().catch(() => {});
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -32,6 +35,8 @@ export const AuthProvider = ({ children }) => {
     const { safeLogin } = require('../services/safeAuth');
     const data = await safeLogin(email, password);
     setUser(data);
+    // Fire-and-forget push registration after successful auth
+    registerForPushNotifications().catch(() => {});
     return data;
   };
 
@@ -39,10 +44,16 @@ export const AuthProvider = ({ children }) => {
     const { safeRegister } = require('../services/safeAuth');
     const data = await safeRegister(email, password, name, referralCode);
     setUser(data);
+    registerForPushNotifications().catch(() => {});
     return data;
   };
 
   const logout = async () => {
+    try {
+      await unregisterPushNotifications();
+    } catch (e) {
+      // non-fatal
+    }
     try {
       await authAPI.logout();
     } catch (error) {

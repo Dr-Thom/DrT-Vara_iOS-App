@@ -12,6 +12,7 @@ from utils.weekly_challenge import record_qualifying_referral
 from utils.economics import bonus_awarded_for_completion, next_bonus_milestone, bonuses_earned_count
 from utils.streak import update_streak_on_activity, streak_multiplier, streak_tier_label
 from utils.trust import TRUST_PER_TASK, TRUST_PER_7DAY_STREAK, clamp_trust
+from utils.push import send_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,24 @@ async def pay_referrer(referred_user: dict, earned_amount: float) -> float:
         "created_at": datetime.utcnow(),
     })
     logger.info(f"Referral payout: ${payout} to user {referred_by_user_id} from {referred_user.get('email')}")
+
+    # Push notification to the referrer (best-effort; never block)
+    try:
+        referred_email = referred_user.get("email", "your friend")
+        # Mask the email (just show first 3 chars + domain)
+        masked = referred_email
+        if "@" in referred_email:
+            local, dom = referred_email.split("@", 1)
+            masked = (local[:3] + "***@" + dom) if len(local) > 3 else referred_email
+        await send_to_user(
+            db,
+            referred_by_user_id,
+            title="🎁 You just earned from a referral!",
+            body=f"{masked} completed a task — you earned ${payout:.2f}",
+            data={"type": "referral_payout", "amount": payout, "deepLink": "vara://referrals"},
+        )
+    except Exception as e:
+        logger.error(f"Referral push notification failed (non-fatal): {e}")
 
     # Weekly challenge: record this referred user as a qualifying friend for the week
     try:
@@ -228,6 +247,23 @@ async def complete_task(
 
         # Pay referrer 10% of the total earned on this call (capped at $10 per referred user)
         await pay_referrer(user, total_reward_this_call)
+
+        # Push notification when a milestone bonus unlocks (best-effort)
+        if bonus_this_call > 0:
+            try:
+                await send_to_user(
+                    db,
+                    str(user_id),
+                    title=f"🎉 Bonus unlocked: ${bonus_this_call:.0f}!",
+                    body=f"You hit task #{new_tasks_completed} and earned a ${bonus_this_call:.0f} bonus.",
+                    data={
+                        "type": "bonus_unlock",
+                        "amount": bonus_this_call,
+                        "deepLink": "vara://dashboard",
+                    },
+                )
+            except Exception as e:
+                logger.error(f"Bonus push notification failed (non-fatal): {e}")
 
         # Fetch refreshed user for accurate balance in response
         refreshed = await db.users.find_one({"_id": user_id})

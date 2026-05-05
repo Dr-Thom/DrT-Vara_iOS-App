@@ -14,6 +14,7 @@ from utils.trust import (
     TRUST_PER_SUCCESSFUL_WITHDRAWAL,
     clamp_trust,
 )
+from utils.push import send_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +137,27 @@ async def request_withdrawal(
                 f"Withdrawal request received. Your '{tier_label}' trust tier has a "
                 f"{delay_hrs}h hold — payout by {eta.strftime('%b %d, %I:%M %p UTC')}."
             )
+
+        # Push notification (best-effort)
+        try:
+            if delay_hrs == 0:
+                await send_to_user(
+                    db,
+                    str(user_id),
+                    title="✅ Withdrawal approved!",
+                    body=f"${withdrawal.amount:.2f} is on the way to your {withdrawal.method.upper()}.",
+                    data={"type": "withdrawal_approved", "amount": withdrawal.amount, "deepLink": "vara://withdrawal"},
+                )
+            else:
+                await send_to_user(
+                    db,
+                    str(user_id),
+                    title="📨 Withdrawal request received",
+                    body=f"${withdrawal.amount:.2f} will arrive by {eta.strftime('%b %d, %I:%M %p UTC')}.",
+                    data={"type": "withdrawal_pending", "amount": withdrawal.amount, "deepLink": "vara://withdrawal"},
+                )
+        except Exception as e:
+            logger.error(f"Withdrawal push notification failed (non-fatal): {e}")
 
         return WithdrawalResponse(
             success=True,
