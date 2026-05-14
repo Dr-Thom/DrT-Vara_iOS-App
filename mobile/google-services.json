@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "111010294177",
+    "project_id": "vara-3afc8",
+    "storage_bucket": "vara-3afc8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111010294177:android:e0932fe9ae36865a5743e0",
+        "android_client_info": {
+          "package_name": "com.vara.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzPU9oQI1aBxwoEtL5IL4O9X2r0I_zcEU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}›
