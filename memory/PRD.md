@@ -39,8 +39,15 @@ Build a landing page for VARA - an app where users can earn USD from their phone
 - AuthContext registers token on login + on app open; unregisters on logout.
 - Backend: New `utils/push.py` (httpx + Expo Push API, batched ≤100, auto-cleans stale `DeviceNotRegistered` tokens). New `utils/notification_scheduler.py` (APScheduler hourly streak job that respects user's IANA `timezone`, Monday 9am UTC weekly super-bonus blast). Endpoints: `POST /api/users/push-token` (validates `ExponentPushToken[…]` format), `DELETE /api/users/push-token`.
 - Triggers wired in: bonus unlock (in `tasks.py`), referral payout (in `tasks.py` `pay_referrer`), withdrawal approved/pending (in `withdrawal.py`), daily streak reminder (scheduler), weekly super bonus (scheduler).
-- Bumped to `1.0.3` (versionCode 4) + `scheme: "vara"` for deep linking + expo-notifications plugin.
-- ⚠️ Android delivery requires Firebase google-services.json + FCM V1 service account key uploaded to EAS. Step-by-step in next user message.
+- Firebase setup completed by user. FCM service account uploaded to EAS. Permission popup wired with `POST_NOTIFICATIONS` permission + `extra.eas.projectId` in app.json.
+
+### 💰 AdMob Re-integration (May 19, 2026) — Banner + Interstitial + Rewarded
+- Reinstalled `react-native-google-mobile-ads@^16.3.3` (SDK 54-compatible). App.json plugin block with TEST `androidAppId` / `iosAppId` (`ca-app-pub-3940256099942544~3347511713`) — swap to real AdMob IDs when account is set up.
+- `components/AdBanner.js` — anchored adaptive banner using `BannerAdSize.ANCHORED_ADAPTIVE_BANNER` + Google's TEST ad unit IDs (no fill risk, no policy violations).
+- `contexts/AdContext.js` — full provider with: SDK initialization, preloaded interstitial (auto-shown every 3 tasks via `trackTaskCompletion()`), preloaded rewarded ad (`showRewardedAd()` resolves `{success, amount, type}` only on `EARNED_REWARD`; gracefully handles closed_early / errors / not_loaded).
+- Dashboard: New "📺 Watch ad → Earn $0.05" CTA button. Disabled until rewarded ad is loaded.
+- Backend: `POST /api/users/ad-reward` credits $0.05, enforces 20/day cap and 25s throttle, writes to `ad_rewards` audit ledger. Tested live ✅.
+- App version bumped to **1.0.5 / versionCode 6** for next EAS build.
 
 
 

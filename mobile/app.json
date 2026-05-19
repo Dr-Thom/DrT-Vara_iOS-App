@@ -3,7 +3,7 @@
     "name": "VARA",
     "slug": "vara",
     "scheme": "vara",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -33,7 +33,7 @@
         "backgroundColor": "#1E3A8A"
       },
       "package": "com.vara.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "googleServicesFile": "./google-services.json",
       "permissions": ["INTERNET", "ACCESS_NETWORK_STATE", "POST_NOTIFICATIONS"]
     },
@@ -43,6 +43,14 @@
         {
           "color": "#1E3A8A",
           "defaultChannel": "default"
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "This identifier helps us show more relevant ads and improve your earning opportunities."
         }
       ]
     ],

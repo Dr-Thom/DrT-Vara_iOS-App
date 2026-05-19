@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,54 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useAds } from '../contexts/AdContext';
 import AdBanner from '../components/AdBanner';
 import SuperBonusChallenge from '../components/SuperBonusChallenge';
 import ProgressionStrip from '../components/ProgressionStrip';
 import { APP_CONFIG, nextBonusThreshold } from '../config';
+import { usersAPI } from '../services/api';
 
 const DashboardScreen = ({ navigation }) => {
   const { user, refreshUser, logout } = useAuth();
+  const { showRewardedAd, rewardedLoaded } = useAds();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [claimingAd, setClaimingAd] = useState(false);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     await refreshUser();
     setRefreshing(false);
   }, [refreshUser]);
+
+  const handleWatchAdForBonus = async () => {
+    if (claimingAd) return;
+    if (!rewardedLoaded) {
+      Alert.alert('Ad not ready', 'Please try again in a moment.');
+      return;
+    }
+    setClaimingAd(true);
+    try {
+      const result = await showRewardedAd();
+      if (result?.success) {
+        const credit = await usersAPI.claimAdReward(result.amount);
+        await refreshUser();
+        Alert.alert(
+          '🎉 You earned $0.05!',
+          `New balance: $${(credit.new_balance ?? 0).toFixed(2)}\n${credit.daily_remaining ?? 0} more ads available today.`,
+        );
+      } else if (result?.reason === 'closed_early') {
+        Alert.alert('Reward not earned', 'You closed the ad before finishing — no credit this time.');
+      }
+    } catch (e) {
+      const msg = e?.response?.data?.detail || 'Could not credit reward.';
+      Alert.alert('Hmm', typeof msg === 'string' ? msg : 'Could not credit reward.');
+    } finally {
+      setClaimingAd(false);
+    }
+  };
 
   const tasksCompleted = user?.tasks_completed || 0;
   const bonusesEarned = user?.bonuses_earned || 0;
@@ -96,6 +128,26 @@ const DashboardScreen = ({ navigation }) => {
       <View style={{ marginHorizontal: 20, marginTop: 12 }}>
         <SuperBonusChallenge />
       </View>
+
+      {/* Watch ad for $0.05 bonus */}
+      <TouchableOpacity
+        style={[styles.watchAdCard, !rewardedLoaded && styles.watchAdDisabled]}
+        onPress={handleWatchAdForBonus}
+        disabled={claimingAd || !rewardedLoaded}
+        data-testid="watch-rewarded-ad-btn"
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.watchAdTitle}>📺 Watch ad → Earn $0.05</Text>
+          <Text style={styles.watchAdSub}>
+            {claimingAd
+              ? 'Loading…'
+              : rewardedLoaded
+              ? 'Quick 30s video, instant credit. Up to 20/day.'
+              : 'Ad is loading — try again in a sec.'}
+          </Text>
+        </View>
+        <Text style={styles.watchAdArrow}>→</Text>
+      </TouchableOpacity>
 
       {/* Progress */}
       <View style={styles.progressCard}>
@@ -181,6 +233,21 @@ const styles = StyleSheet.create({
   secondaryAction: { flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 2, elevation: 1 },
   secondaryActionText: { fontSize: 13, fontWeight: '600', color: '#374151' },
   bottomAd: { marginTop: 20, marginBottom: 20 },
+  watchAdCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+  },
+  watchAdDisabled: { opacity: 0.55 },
+  watchAdTitle: { fontSize: 15, fontWeight: '700', color: '#92400E' },
+  watchAdSub: { fontSize: 12, color: '#78350F', marginTop: 2 },
+  watchAdArrow: { fontSize: 22, color: '#92400E', fontWeight: '700', marginLeft: 8 },
 });
 
 export default DashboardScreen;

@@ -64,6 +64,82 @@ async def unregister_push_token(current_user: dict = Depends(get_current_user)):
     return {"success": True}
 
 
+class AdRewardPayload(BaseModel):
+    network: str | None = None  # "admob"
+    amount: int | None = None   # Network-reported reward amount (informational)
+
+
+# Anti-fraud caps for the rewarded-video bonus.
+REWARDED_BONUS_AMOUNT = 0.05            # $0.05 per ad
+REWARDED_DAILY_CAP = 20                  # max 20 ads/user/day → $1.00 ceiling
+REWARDED_MIN_INTERVAL_SECS = 25          # avoid double-credit if user spams the button
+
+
+@router.post("/ad-reward")
+async def claim_ad_reward(
+    payload: AdRewardPayload,
+    current_user: dict = Depends(get_current_user),
+):
+    """Credit the user $0.05 for watching a rewarded video ad.
+
+    Server-enforced caps: 20/day per user, 25s minimum between credits.
+    """
+    user_id = ObjectId(current_user["_id"])
+    now = datetime.utcnow()
+    today_start = datetime(now.year, now.month, now.day)
+
+    # Daily cap check
+    daily_count = await db.ad_rewards.count_documents({
+        "user_id": str(user_id),
+        "created_at": {"$gte": today_start},
+    })
+    if daily_count >= REWARDED_DAILY_CAP:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily rewarded-ad limit reached ({REWARDED_DAILY_CAP}/day). Come back tomorrow!",
+        )
+
+    # Throttle: no double-credit within 25 seconds
+    latest = await db.ad_rewards.find_one(
+        {"user_id": str(user_id)},
+        sort=[("created_at", -1)],
+    )
+    if latest and (now - latest["created_at"]).total_seconds() < REWARDED_MIN_INTERVAL_SECS:
+        raise HTTPException(
+            status_code=429,
+            detail="Please wait a few seconds before claiming another reward.",
+        )
+
+    # Credit the user
+    await db.users.update_one(
+        {"_id": user_id},
+        {"$inc": {
+            "earnings": REWARDED_BONUS_AMOUNT,
+            "total_earned": REWARDED_BONUS_AMOUNT,
+            "ad_rewards_earned": REWARDED_BONUS_AMOUNT,
+        }},
+    )
+
+    # Audit ledger
+    await db.ad_rewards.insert_one({
+        "user_id": str(user_id),
+        "amount": REWARDED_BONUS_AMOUNT,
+        "network": payload.network or "admob",
+        "network_amount": payload.amount,
+        "created_at": now,
+    })
+
+    logger.info(f"Ad reward: ${REWARDED_BONUS_AMOUNT} → {current_user.get('email')}")
+
+    refreshed = await db.users.find_one({"_id": user_id})
+    return {
+        "success": True,
+        "amount": REWARDED_BONUS_AMOUNT,
+        "new_balance": refreshed.get("earnings", 0.0),
+        "daily_remaining": REWARDED_DAILY_CAP - daily_count - 1,
+    }
+
+
 @router.get("/me/stats")
 async def get_my_stats(current_user: dict = Depends(get_current_user)):
     """Progression stats for the dashboard: trust, streak, next milestone."""

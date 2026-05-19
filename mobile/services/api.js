@@ -130,6 +130,13 @@ export const usersAPI = {
     const response = await api.delete('/api/users/push-token');
     return response.data;
   },
+  claimAdReward: async (amount) => {
+    const response = await api.post('/api/users/ad-reward', {
+      network: 'admob',
+      amount: amount ?? 1,
+    });
+    return response.data;
+  },
 };
 
 export const tasksAPI = {
