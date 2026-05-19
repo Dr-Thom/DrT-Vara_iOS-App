@@ -3,19 +3,19 @@ export const API_CONFIG = {
   BACKEND_URL: 'https://vara-landing-v1.preview.emergentagent.com',
 };
 
-// AdMob Configuration (Test IDs - Replace with real IDs in production)
+// AdMob Configuration (REAL production IDs — VARA AdMob account)
 export const ADMOB_CONFIG = {
-  // Test AdMob App ID
-  APP_ID: 'ca-app-pub-3940256099942544~3347511713',
+  // VARA AdMob App ID
+  APP_ID: 'ca-app-pub-2444447122681811~9772357899',
 
-  // Banner Ad Unit IDs (Test)
-  BANNER_AD_UNIT: 'ca-app-pub-3940256099942544/6300978111',
+  // Banner Ad Unit ID
+  BANNER_AD_UNIT: 'ca-app-pub-2444447122681811/6825110443',
 
-  // Interstitial Ad Unit ID (Test)
-  INTERSTITIAL_AD_UNIT: 'ca-app-pub-3940256099942544/1033173712',
+  // Interstitial Ad Unit ID
+  INTERSTITIAL_AD_UNIT: 'ca-app-pub-2444447122681811/8220741143',
 
-  // Rewarded Video Ad Unit ID (Test)
-  REWARDED_AD_UNIT: 'ca-app-pub-3940256099942544/5224354917',
+  // Rewarded Video Ad Unit ID
+  REWARDED_AD_UNIT: 'ca-app-pub-2444447122681811/9291491680',
 };
 
 // App Configuration (keep in sync with backend /app/backend/utils/economics.py)
