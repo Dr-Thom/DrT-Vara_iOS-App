@@ -46,11 +46,9 @@
         }
       ],
       [
-        "./node_modules/react-native-google-mobile-ads/app.plugin.js",
+        "./plugins/withAdMobLocal.js",
         {
-          "androidAppId": "ca-app-pub-2444447122681811~9772357899",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
-          "userTrackingUsageDescription": "This identifier helps us show more relevant ads and improve your earning opportunities."
+          "androidAppId": "ca-app-pub-2444447122681811~9772357899"
         }
       ]
     ],
