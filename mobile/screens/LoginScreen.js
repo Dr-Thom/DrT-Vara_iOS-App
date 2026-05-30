@@ -43,7 +43,7 @@ const LoginScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.logo}>VARA</Text>
+            <Text style={styles.logo}>SAMSON</Text>
             <View style={styles.bonusBadge}>
               <Text style={styles.bonusText}>$1 Bonus</Text>
             </View>

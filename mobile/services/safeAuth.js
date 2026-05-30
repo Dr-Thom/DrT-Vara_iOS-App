@@ -25,7 +25,7 @@ export async function safeLogin(email, password) {
     });
   } catch (e) {
     throw new Error(
-      `Cannot reach VARA server. Check internet, then try again.\n(${(e && e.message) || 'network error'})`
+      `Cannot reach SAMSON server. Check internet, then try again.\n(${(e && e.message) || 'network error'})`
     );
   }
 
@@ -69,7 +69,7 @@ export async function safeRegister(email, password, name, referralCode) {
       body: JSON.stringify(payload),
     });
   } catch (e) {
-    throw new Error(`Cannot reach VARA server. (${(e && e.message) || 'network error'})`);
+    throw new Error(`Cannot reach SAMSON server. (${(e && e.message) || 'network error'})`);
   }
   const data = await safeJSON(response);
   if (!response.ok) {

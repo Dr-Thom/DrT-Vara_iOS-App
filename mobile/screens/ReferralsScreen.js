@@ -69,7 +69,7 @@ const ReferralsScreen = () => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Join me on VARA and earn USD from simple tasks! Use my code ${data?.referral_code}: ${shareLink}`,
+        message: `Join me on SAMSON and earn USD from simple tasks! Use my code ${data?.referral_code}: ${shareLink}`,
         url: shareLink,
       });
     } catch { /* cancelled */ }

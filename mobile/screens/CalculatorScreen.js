@@ -34,7 +34,7 @@ const CalculatorScreen = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Earnings Calculator</Text>
-      <Text style={styles.subtitle}>See how much you can earn on VARA.</Text>
+      <Text style={styles.subtitle}>See how much you can earn on SAMSON.</Text>
 
       <View style={styles.card}>
         <View style={styles.sliderRow}>

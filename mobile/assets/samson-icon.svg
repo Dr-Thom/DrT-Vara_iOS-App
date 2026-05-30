@@ -1,0 +1,67 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <!-- Rounded square background -->
+    <rect width="512" height="512" rx="115" fill="#1E3A8A"/>
+    
+    <!-- FBI-style Badge Shield -->
+    <path d="M 256 70 
+             L 380 100 
+             L 390 240 
+             Q 390 380 256 460 
+             Q 122 380 122 240 
+             L 132 100 Z" 
+          fill="#2563EB" 
+          stroke="#F59E0B" 
+          stroke-width="6"/>
+    
+    <!-- Inner badge border -->
+    <path d="M 256 85 
+             L 370 112 
+             L 378 240 
+             Q 378 365 256 440 
+             Q 134 365 134 240 
+             L 142 112 Z" 
+          fill="#3B82F6" 
+          stroke="#FCD34D" 
+          stroke-width="3"/>
+    
+    <!-- Badge ribbon at top -->
+    <path d="M 160 130 
+             Q 160 115 175 115 
+             L 337 115 
+             Q 352 115 352 130 
+             L 350 155 
+             Q 350 165 340 165 
+             L 172 165 
+             Q 162 165 162 155 Z" 
+          fill="#1E40AF" 
+          stroke="#FCD34D" 
+          stroke-width="2"/>
+    
+    <!-- 3 EQUAL STARS -->
+    <g fill="#FCD34D" stroke="#F59E0B" stroke-width="1.5">
+        <path d="M 195 195 l 8 24 h 25 l -20 15 8 24 -21 -16 -21 16 8 -24 -20 -15 h 25 z"/>
+        <path d="M 256 195 l 8 24 h 25 l -20 15 8 24 -21 -16 -21 16 8 -24 -20 -15 h 25 z"/>
+        <path d="M 317 195 l 8 24 h 25 l -20 15 8 24 -21 -16 -21 16 8 -24 -20 -15 h 25 z"/>
+    </g>
+    
+    <!-- Letter S -->
+    <text x="256" y="320" 
+          font-family="'Arial Black', Arial, sans-serif" 
+          font-size="150" 
+          font-weight="900" 
+          fill="#FFFFFF" 
+          text-anchor="middle" 
+          dominant-baseline="middle"
+          stroke="#1E40AF"
+          stroke-width="3">S</text>
+    
+    <!-- "SAMSON: USD" text on ribbon -->
+    <text x="256" y="143" 
+          font-family="Arial, sans-serif" 
+          font-size="20" 
+          font-weight="bold" 
+          fill="#FCD34D" 
+          text-anchor="middle" 
+          dominant-baseline="middle"
+          letter-spacing="0.5">SAMSON: USD</text>
+</svg>

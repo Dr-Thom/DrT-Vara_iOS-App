@@ -33,7 +33,7 @@ async function ensureAndroidChannel() {
   if (Platform.OS !== 'android') return;
   try {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'VARA',
+      name: 'SAMSON',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#1E3A8A',

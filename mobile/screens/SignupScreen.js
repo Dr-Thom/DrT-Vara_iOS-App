@@ -34,7 +34,7 @@ const SignupScreen = ({ navigation }) => {
         const r = await referralsAPI.validate(code);
         if (r?.valid) {
           setReferralStatus('valid');
-          setReferrerName(r.referrer_name || 'a VARA user');
+          setReferrerName(r.referrer_name || 'a SAMSON user');
         } else {
           setReferralStatus('invalid');
         }
@@ -72,7 +72,7 @@ const SignupScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.logo}>VARA</Text>
+            <Text style={styles.logo}>SAMSON</Text>
             <View style={styles.bonusBadge}>
               <Text style={styles.bonusText}>$1 bonus at 5 tasks</Text>
             </View>

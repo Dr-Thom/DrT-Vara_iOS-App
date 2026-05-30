@@ -60,7 +60,7 @@ const AppNavigator = () => {
             name="Dashboard"
             component={DashboardScreen}
             options={{
-              title: 'VARA',
+              title: 'SAMSON',
               headerLeft: null,
             }}
           />
