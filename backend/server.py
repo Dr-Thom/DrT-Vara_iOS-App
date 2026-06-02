@@ -19,6 +19,7 @@ from routes.withdrawal import router as withdrawal_router
 from routes.referrals import router as referrals_router
 from routes.stats import router as stats_router
 from routes.users import router as users_router
+from routes.legal import router as legal_router
 
 # Import seed functions
 from utils.seed import seed_admin, seed_tasks
@@ -40,6 +41,7 @@ app.include_router(withdrawal_router)
 app.include_router(referrals_router)
 app.include_router(stats_router)
 app.include_router(users_router)
+app.include_router(legal_router)
 
 # CORS - use frontend URL from env
 frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
