@@ -41,6 +41,27 @@ Build a landing page for VARA - an app where users can earn USD from their phone
 - Triggers wired in: bonus unlock (in `tasks.py`), referral payout (in `tasks.py` `pay_referrer`), withdrawal approved/pending (in `withdrawal.py`), daily streak reminder (scheduler), weekly super bonus (scheduler).
 - Firebase setup completed by user. FCM service account uploaded to EAS. Permission popup wired with `POST_NOTIFICATIONS` permission + `extra.eas.projectId` in app.json.
 
+### 🏷️ Rebrand VARA → SAMSON (May 30, 2026)
+- All user-facing strings changed: app name (app.json), dashboard header (App.js), login/signup logos, calculator, referrals share text, network error messages, notification channel name.
+- App icon redesigned in SVG (`assets/samson-icon.svg`) — same shield, three yellow stars, deep blue background; replaced "VARA: USD" ribbon with "SAMSON: USD"; removed the green chart line.
+- All 4 PNG assets regenerated via cairosvg at 1024x1024 (icon.png, adaptive-icon.png, splash-icon.png, favicon.png).
+- Internal Android package stays `com.vara.app` (changing would invalidate Firebase + AdMob + EAS keystore — purely display rebrand).
+- Bumped to v1.0.7 / versionCode 8. User confirmed install on Android: SAMSON name + new icon (no green) ✅.
+
+### 📄 Privacy + Terms pages (May 30, 2026)
+- New `/app/backend/routes/legal.py` serves HTML pages at:
+  - `https://vara-landing-v1.preview.emergentagent.com/privacy`
+  - `https://vara-landing-v1.preview.emergentagent.com/terms`
+- Required by Google Play submission. Pages branded as SAMSON, cover all required disclosures (data collection, AdMob, push tokens, retention, user rights, contact).
+
+### 🚀 Google Play Internal Testing Setup (Jun 8, 2026 — IN PROGRESS)
+- App created in Play Console: "SAMSON: Earn Cash for Tasks"
+- Internal Testing track set up with 8 testers
+- Privacy policy URL ready: `/privacy`
+- Listing copy drafted (title, short desc, full desc, content rating, target audience 18+)
+- Waiting on: production AAB build (`eas build -p android --profile production`) to upload
+- After AAB upload: Save and publish → Google emails opt-in link to testers → install from Play Store within ~5 min.
+
 ### 💰 AdMob Re-integration (May 19, 2026) — Banner + Interstitial + Rewarded
 - Reinstalled `react-native-google-mobile-ads@^16.3.3` (SDK 54-compatible). App.json plugin block with TEST `androidAppId` / `iosAppId` (`ca-app-pub-3940256099942544~3347511713`) — swap to real AdMob IDs when account is set up.
 - `components/AdBanner.js` — anchored adaptive banner using `BannerAdSize.ANCHORED_ADAPTIVE_BANNER` + Google's TEST ad unit IDs (no fill risk, no policy violations).
