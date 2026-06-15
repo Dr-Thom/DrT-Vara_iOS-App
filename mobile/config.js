@@ -1,6 +1,8 @@
 // API Configuration
 export const API_CONFIG = {
-  BACKEND_URL: 'https://vara-landing-v1.preview.emergentagent.com',
+  // Production backend on Render (https://drt-vara-ios-app.onrender.com)
+  // Backed by MongoDB Atlas cluster Samson-prod
+  BACKEND_URL: 'https://drt-vara-ios-app.onrender.com',
 };
 
 // AdMob Configuration (REAL production IDs — VARA AdMob account)

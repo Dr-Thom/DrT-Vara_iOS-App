@@ -48,6 +48,20 @@ Build a landing page for VARA - an app where users can earn USD from their phone
 - Internal Android package stays `com.vara.app` (changing would invalidate Firebase + AdMob + EAS keystore — purely display rebrand).
 - Bumped to v1.0.7 / versionCode 8. User confirmed install on Android: SAMSON name + new icon (no green) ✅.
 
+### 🌐 Production Backend Deployment (June 15, 2026) — Render + MongoDB Atlas
+- Goal: Move backend off transient Emergent preview URL onto a stable production host before public Play Store launch.
+- **Database**: Created free-tier MongoDB Atlas cluster `Samson-prod` (qrjbiyl.mongodb.net). DB name `samson_prod`. IP allowlist set to `0.0.0.0/0` for Render's dynamic outbound IPs.
+- **Backend Host**: Deployed FastAPI app to Render Free tier as `drt-vara-ios-app` Web Service from GitHub `Dr-Thom/DrT-Vara_iOS-App` (root dir `backend/`, branch `main`).
+  - **Live URL**: https://drt-vara-ios-app.onrender.com
+  - Build Command: `pip install -r requirements.txt`
+  - Start Command: `uvicorn server:app --host 0.0.0.0 --port $PORT`
+  - Env: `PYTHON_VERSION=3.11.9`, `MONGO_URL`, `DB_NAME=samson_prod`, `JWT_SECRET`, `CORS_ORIGINS=*`
+- **Slim requirements.txt** (13 packages) — created `/app/backend/requirements.dev.txt` as backup of the full freeze. Production now only ships fastapi/uvicorn/motor/pymongo/pydantic/bcrypt/pyjwt/httpx/apscheduler/pytz/python-dotenv/email-validator/python-multipart. Avoids `emergentintegrations`, `cairocffi`, `google-genai` which broke Render builds.
+- **Issues solved during deploy**: GitHub repo access (user re-authorized Render in GitHub OAuth), case-sensitive root dir (`Backend` → `backend`), heavy dev deps failing pip build, Python 3.14 default → pinned 3.11.9 via PYTHON_VERSION env var, pre-deploy command leftover from paid tier defaults (auto-removed on Free instance switch), Atlas IP allowlist (0.0.0.0/0), Start Command typo (`gunicorn server.app` → `uvicorn server:app`).
+- **Verified live**: `GET /api/health` → connected ✅, `POST /api/auth/login` admin → returns JWT ✅, `GET /privacy` + `/terms` → 200 OK ✅. Production admin referral code: `7NH6D382`.
+- **Mobile config updated**: `/app/mobile/config.js` BACKEND_URL → `https://drt-vara-ios-app.onrender.com`. User must run `eas build -p android --profile preview` to bake the production URL into the next APK/AAB.
+
+
 ### 📄 Privacy + Terms pages (May 30, 2026)
 - New `/app/backend/routes/legal.py` serves HTML pages at:
   - `https://vara-landing-v1.preview.emergentagent.com/privacy`
