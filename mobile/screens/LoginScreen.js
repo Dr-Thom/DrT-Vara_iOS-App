@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
@@ -57,21 +58,43 @@ const LoginScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               placeholder="your@email.com"
+              placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
+              autoCorrect={false}
               keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
             />
 
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                style={[styles.input, styles.passwordInput]}
+                placeholder="Enter your password"
+                placeholderTextColor="#9CA3AF"
+                value={password}
+                onChangeText={(t) => {
+                  if (__DEV__) console.log('[LoginScreen] password length:', t.length);
+                  setPassword(t);
+                }}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
+                autoComplete="password"
+                textContentType="password"
+                importantForAutofill="yes"
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setShowPassword((v) => !v)}
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              >
+                <Text style={styles.passwordToggleText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleLogin}
@@ -159,9 +182,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 14,
     fontSize: 16,
+    color: '#1F2937',
     borderWidth: 1,
     borderColor: '#D1D5DB',
     marginBottom: 16,
+  },
+  passwordWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    paddingRight: 64,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  passwordToggleText: {
+    color: '#3B82F6',
+    fontSize: 14,
+    fontWeight: '600',
   },
   button: {
     backgroundColor: '#3B82F6',
