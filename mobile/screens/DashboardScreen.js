@@ -256,6 +256,19 @@ const DashboardScreen = ({ navigation }) => {
         <Text style={styles.watchVideoArrow}>→</Text>
       </TouchableOpacity>
 
+      {/* ─── OFFERS & SURVEYS CTA ──────────────────────── */}
+      <TouchableOpacity
+        style={styles.offersCard}
+        onPress={() => navigation.navigate('Offers')}
+        data-testid="offers-cta-btn"
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.offersCardTitle}>💎 Offers & Surveys</Text>
+          <Text style={styles.offersCardSub}>Premium rewards · $0.10 – $5.00 each</Text>
+        </View>
+        <Text style={styles.offersCardArrow}>→</Text>
+      </TouchableOpacity>
+
       {/* ─── ACCOUNT STATUS + STREAK ROW ───────────────── */}
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { borderLeftColor: '#10B981' }]} data-testid="account-status-card">
@@ -439,6 +452,22 @@ const styles = StyleSheet.create({
   watchVideoTitle: { fontSize: 15, fontWeight: '700', color: '#065F46' },
   watchVideoSub: { fontSize: 13, color: '#047857', marginTop: 2, fontWeight: '500' },
   watchVideoArrow: { fontSize: 22, color: '#065F46', fontWeight: '700', marginLeft: 8 },
+
+  // Offers CTA card
+  offersCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF5FF',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#E9D5FF',
+  },
+  offersCardTitle: { fontSize: 15, fontWeight: '700', color: '#581C87' },
+  offersCardSub: { fontSize: 13, color: '#7C3AED', marginTop: 2, fontWeight: '500' },
+  offersCardArrow: { fontSize: 22, color: '#581C87', fontWeight: '700', marginLeft: 8 },
 
   // Stats row
   statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 4 },
