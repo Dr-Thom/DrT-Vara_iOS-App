@@ -20,7 +20,7 @@ const TasksScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [completingTaskId, setCompletingTaskId] = useState(null);
   const { user, refreshUser } = useAuth();
-  const { showRewardedAd, trackTaskCompletion, rewardedLoaded } = useAds();
+  const { trackTaskCompletion } = useAds();
 
   useEffect(() => {
     fetchTasks();
@@ -46,29 +46,10 @@ const TasksScreen = () => {
 
   const handleCompleteTask = async (taskId) => {
     setCompletingTaskId(taskId);
-
-    // Show rewarded video ad first
-    try {
-      if (rewardedLoaded) {
-        await showRewardedAd();
-        // User watched the ad, now complete the task
-        await completeTask(taskId);
-      } else {
-        // Ad not loaded, allow task completion anyway
-        Alert.alert(
-          'Ad Not Ready',
-          'Ad is still loading. You can complete the task, but consider watching ads to support us!',
-          [
-            { text: 'Cancel', style: 'cancel', onPress: () => setCompletingTaskId(null) },
-            { text: 'Continue', onPress: () => completeTask(taskId) },
-          ]
-        );
-      }
-    } catch (error) {
-      console.error('Ad error:', error);
-      // If ad fails, still allow task completion
-      await completeTask(taskId);
-    }
+    // Task completion is independent of ads.
+    // Rewarded videos are an OPT-IN extra +$0.05 from the dashboard.
+    // Interstitials are shown every N tasks via trackTaskCompletion().
+    await completeTask(taskId);
   };
 
   const completeTask = async (taskId) => {
