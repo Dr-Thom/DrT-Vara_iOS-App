@@ -102,7 +102,7 @@ const BonusExplained = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-white/90">Average Time:</span>
-                      <span className="font-bold text-xl">30 mins</span>
+                      <span className="font-bold text-xl">5 mins</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-white/90">Withdrawal:</span>
