@@ -124,7 +124,7 @@ const BonusExplained = () => {
             {/* Floating stats */}
             <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-6 border border-gray-100 animate-float">
               <p className="text-sm text-gray-600 mb-1">Average first day earnings</p>
-              <p className="text-3xl font-bold text-green-600">$8.50</p>
+              <p className="text-3xl font-bold text-green-600">$44 USD</p>
             </div>
           </div>
         </div>
