@@ -1,5 +1,3 @@
-Here's the full Python code to paste — copy this entire block (top to bottom):
-
 """User stats — progression data for dashboard UI."""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
