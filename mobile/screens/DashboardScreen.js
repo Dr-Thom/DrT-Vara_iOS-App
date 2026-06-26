@@ -233,6 +233,11 @@ const DashboardScreen = ({ navigation }) => {
           <Text style={styles.superBonusRewardLabel}>Reward</Text>
           <Text style={styles.superBonusRewardAmount}>{formatUSD(super_bonus.amount)}</Text>
         </View>
+        {totals.super_bonuses_earned > 0 && (
+          <Text style={styles.superBonusLifetime} data-testid="super-bonus-lifetime">
+            🏆 Total super bonuses earned: {totals.super_bonuses_earned} (${(totals.super_bonuses_earned * super_bonus.amount).toFixed(2)})
+          </Text>
+        )}
       </View>
 
       {/* ─── REWARDED VIDEO ────────────────────────────── */}
@@ -416,6 +421,7 @@ const styles = StyleSheet.create({
   superBonusRewardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
   superBonusRewardLabel: { fontSize: 13, color: '#78350F', fontWeight: '600' },
   superBonusRewardAmount: { fontSize: 22, fontWeight: '700', color: '#B45309' },
+  superBonusLifetime: { fontSize: 12, color: '#78350F', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(180, 83, 9, 0.2)', fontWeight: '600', textAlign: 'center' },
 
   // Watch video
   watchVideoCard: {
