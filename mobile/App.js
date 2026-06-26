@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import TasksScreen from './screens/TasksScreen';
 import WithdrawalScreen from './screens/WithdrawalScreen';
 import CalculatorScreen from './screens/CalculatorScreen';
 import ReferralsScreen from './screens/ReferralsScreen';
+import OnboardingScreen, { hasSeenOnboarding } from './screens/OnboardingScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,9 +23,28 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { user, loading } = useAuth();
+  const [onboardingSeen, setOnboardingSeen] = useState(null); // null while loading
+
+  useEffect(() => {
+    if (user) {
+      hasSeenOnboarding().then(setOnboardingSeen);
+    } else {
+      setOnboardingSeen(null);
+    }
+  }, [user]);
 
   if (loading) {
-    return null; // Or a loading screen
+    return null;
+  }
+
+  // Authenticated, first time → show onboarding
+  if (user && onboardingSeen === false) {
+    return <OnboardingScreen onDone={() => setOnboardingSeen(true)} />;
+  }
+
+  // Still checking onboarding flag → render nothing briefly
+  if (user && onboardingSeen === null) {
+    return null;
   }
 
   return (
@@ -77,12 +97,12 @@ const AppNavigator = () => {
           <Stack.Screen
             name="Referrals"
             component={ReferralsScreen}
-            options={{ title: 'Refer & Earn' }}
+            options={{ title: 'Invite Friends' }}
           />
           <Stack.Screen
             name="Withdrawal"
             component={WithdrawalScreen}
-            options={{ title: 'Withdraw Earnings' }}
+            options={{ title: 'Cash Out' }}
           />
         </>
       )}

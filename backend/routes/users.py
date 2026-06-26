@@ -8,7 +8,20 @@ from datetime import datetime
 import os
 import logging
 
-from utils.economics import next_bonus_milestone, bonuses_earned_count, BONUS_MILESTONES
+from utils.economics import (
+    next_bonus_milestone,
+    next_super_bonus_milestone,
+    bonuses_earned_count,
+    super_bonuses_earned_count,
+    BONUS_INTERVAL,
+    BONUS_AMOUNT,
+    SUPER_BONUS_INTERVAL,
+    SUPER_BONUS_AMOUNT,
+    MIN_CASH_OUT,
+    REFERRAL_GOAL,
+    REFERRAL_BONUS,
+    TASK_REWARD,
+)
 from utils.streak import streak_multiplier, streak_tier_label
 from utils.trust import trust_tier, withdrawal_delay_hours, withdrawal_limits_usd
 from utils.push import is_valid_expo_token
@@ -142,7 +155,7 @@ async def claim_ad_reward(
 
 @router.get("/me/stats")
 async def get_my_stats(current_user: dict = Depends(get_current_user)):
-    """Progression stats for the dashboard: trust, streak, next milestone."""
+    """Legacy progression stats endpoint (kept for backwards compatibility)."""
     user = await db.users.find_one({"_id": ObjectId(current_user["_id"])})
     if not user:
         return {}
@@ -152,7 +165,6 @@ async def get_my_stats(current_user: dict = Depends(get_current_user)):
     trust = user.get("trust_score", 50)
 
     next_milestone = next_bonus_milestone(tasks_completed)
-
     min_w, max_w = withdrawal_limits_usd(trust)
 
     return {
@@ -172,6 +184,140 @@ async def get_my_stats(current_user: dict = Depends(get_current_user)):
         "bonuses": {
             "earned_count": bonuses_earned_count(tasks_completed),
             "next": next_milestone,
-            "ladder": [{"threshold": t, "amount": a} for t, a in BONUS_MILESTONES],
+        },
+    }
+
+
+@router.get("/me/dashboard")
+async def get_dashboard(current_user: dict = Depends(get_current_user)):
+    """Single endpoint returning all data needed for the new dashboard.
+
+    Spec-aligned response with cards: balance, today's earnings, next bonus,
+    super bonus, daily goal, streak, account status, referrals progress.
+    """
+    user = await db.users.find_one({"_id": ObjectId(current_user["_id"])})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user_id = user["_id"]
+    tasks_completed = user.get("tasks_completed", 0)
+    streak = user.get("current_streak", 0)
+    trust = user.get("trust_score", 50)
+
+    # Balance & cash-out
+    available_balance = round(user.get("earnings", 0.0), 2)
+    lifetime_earnings = round(user.get("total_earned", 0.0), 2)
+    total_withdrawn = round(user.get("total_withdrawn", 0.0), 2)
+    next_cash_out_remaining = round(max(0.0, MIN_CASH_OUT - available_balance), 2)
+
+    # Today's earnings — reset to 0 if daily_earnings_date is not today
+    now = datetime.utcnow()
+    today = datetime(now.year, now.month, now.day)
+    daily_date = user.get("daily_earnings_date")
+    if daily_date and daily_date.date() == today.date():
+        todays_earnings = round(user.get("daily_earnings_today", 0.0), 2)
+        todays_tasks = user.get("daily_tasks_today", 0)
+    else:
+        todays_earnings = 0.0
+        todays_tasks = 0
+
+    # Bonus progress (within current 5-task cycle)
+    bonus = next_bonus_milestone(tasks_completed)
+    super_bonus = next_super_bonus_milestone(tasks_completed)
+
+    # Streak & tomorrow's multiplier (streak+1 if completed at least 1 task today, else streak)
+    tomorrows_streak = streak + 1 if todays_tasks == 0 else streak
+    tomorrows_multiplier = streak_multiplier(tomorrows_streak)
+
+    # Account status
+    account_verified = bool(user.get("email"))  # If they have email + account, they're verified
+    instant_cashout = trust >= 75
+
+    # Referrals: count of QUALIFIED referrals (referred users who completed at least 1 task)
+    qualified_referrals = await db.users.count_documents({
+        "referred_by_user_id": str(user_id),
+        "tasks_completed": {"$gte": 1},
+    })
+    referrals_complete = qualified_referrals >= REFERRAL_GOAL
+    referral_bonus_paid = bool(user.get("referral_goal_bonus_paid", False))
+
+    # Award the $10 referral bonus if not already paid
+    if referrals_complete and not referral_bonus_paid:
+        await db.users.update_one(
+            {"_id": user_id},
+            {
+                "$inc": {
+                    "earnings": REFERRAL_BONUS,
+                    "total_earned": REFERRAL_BONUS,
+                    "referral_earnings": REFERRAL_BONUS,
+                },
+                "$set": {"referral_goal_bonus_paid": True},
+            },
+        )
+        available_balance += REFERRAL_BONUS
+        lifetime_earnings += REFERRAL_BONUS
+        referral_bonus_paid = True
+
+    return {
+        "balance": {
+            "available": available_balance,
+            "lifetime_earnings": lifetime_earnings,
+            "total_withdrawn": total_withdrawn,
+            "next_cash_out_remaining": next_cash_out_remaining,
+            "min_cash_out": MIN_CASH_OUT,
+        },
+        "today": {
+            "earnings": todays_earnings,
+            "tasks_completed": todays_tasks,
+            "goal_tasks": 5,
+            "goal_reward": round(5 * TASK_REWARD, 2),
+        },
+        "next_bonus": {
+            "amount": bonus["amount"],
+            "cycle_size": bonus["cycle_size"],
+            "in_cycle": bonus["in_cycle"],
+            "remaining": bonus["remaining"],
+            "threshold": bonus["threshold"],
+        },
+        "super_bonus": {
+            "amount": super_bonus["amount"],
+            "cycle_size": super_bonus["cycle_size"],
+            "in_cycle": super_bonus["in_cycle"],
+            "remaining": super_bonus["remaining"],
+            "threshold": super_bonus["threshold"],
+        },
+        "streak": {
+            "current": streak,
+            "longest": user.get("longest_streak", 0),
+            "current_multiplier": streak_multiplier(streak),
+            "tomorrows_multiplier": tomorrows_multiplier,
+            "completed_task_today": todays_tasks > 0,
+        },
+        "account_status": {
+            "verified": account_verified,
+            "instant_cash_out_eligible": instant_cashout,
+            "trust_score": trust,
+            "trust_tier": trust_tier(trust),
+        },
+        "referrals": {
+            "qualified_count": qualified_referrals,
+            "goal": REFERRAL_GOAL,
+            "bonus_amount": REFERRAL_BONUS,
+            "bonus_paid": referral_bonus_paid,
+            "referral_code": user.get("referral_code"),
+        },
+        "totals": {
+            "tasks_completed": tasks_completed,
+            "bonuses_earned": bonuses_earned_count(tasks_completed),
+            "super_bonuses_earned": super_bonuses_earned_count(tasks_completed),
+        },
+        "rewards": {
+            "task_reward": TASK_REWARD,
+            "bonus_amount": BONUS_AMOUNT,
+            "bonus_interval": BONUS_INTERVAL,
+            "super_bonus_amount": SUPER_BONUS_AMOUNT,
+            "super_bonus_interval": SUPER_BONUS_INTERVAL,
+            "min_cash_out": MIN_CASH_OUT,
+            "rewarded_video_bonus": 0.05,
         },
     }

@@ -1,65 +1,84 @@
-"""VARA earnings economics — source of truth for bonus milestones and streak multipliers.
-Keep in sync with /app/frontend/src/config/economics.js and /app/mobile/config.js
+"""SAMSON earnings economics — source of truth for bonus + super bonus rewards.
+Keep in sync with /app/mobile/config.js
+
+SPEC (Beta MVP):
+  • Task reward: $0.10 per completed task
+  • Bonus: $1 awarded every 5 completed tasks (recurring, resets every cycle)
+  • Super Bonus: $10 awarded every 25 completed tasks (recurring, resets every cycle)
+  • Minimum cash-out: $5.00
 """
 
 # ============================================================
-# BONUS LADDER
+# CONSTANTS — source of truth
 # ============================================================
-# Milestones awarded when tasks_completed reaches this exact number.
-# After the last milestone, a $25 bonus is awarded every additional 100 tasks.
-BONUS_MILESTONES = [
-    (5, 1.0),
-    (10, 2.0),
-    (25, 5.0),
-    (50, 10.0),
-    (100, 25.0),
-]
+TASK_REWARD = 0.10           # $ per completed task
+BONUS_INTERVAL = 5           # Every 5 tasks → $1 bonus
+BONUS_AMOUNT = 1.0           # $1 per bonus cycle
+SUPER_BONUS_INTERVAL = 25    # Every 25 tasks → $10 super bonus
+SUPER_BONUS_AMOUNT = 10.0    # $10 per super bonus cycle
+MIN_CASH_OUT = 5.0           # $5 minimum withdrawal
 
-RECURRING_BONUS_AFTER_LAST = {"interval": 100, "amount": 25.0}
-
-
-def total_bonuses_earned(tasks_completed: int) -> float:
-    """Total bonus $ the user should have received after completing N tasks."""
-    total = 0.0
-    for threshold, amount in BONUS_MILESTONES:
-        if tasks_completed >= threshold:
-            total += amount
-    last_threshold, _ = BONUS_MILESTONES[-1]
-    if tasks_completed > last_threshold:
-        extra = (tasks_completed - last_threshold) // RECURRING_BONUS_AFTER_LAST["interval"]
-        total += RECURRING_BONUS_AFTER_LAST["amount"] * extra
-    return round(total, 2)
+REFERRAL_GOAL = 3            # 3 qualified referrals
+REFERRAL_BONUS = 10.0        # $10 awarded when 3 qualified referrals reached
 
 
 def bonus_awarded_for_completion(new_task_count: int) -> float:
-    """Bonus $ awarded EXACTLY upon completing task #new_task_count. 0 if none."""
-    for threshold, amount in BONUS_MILESTONES:
-        if new_task_count == threshold:
-            return amount
-    last_threshold, _ = BONUS_MILESTONES[-1]
-    if new_task_count > last_threshold and (new_task_count - last_threshold) % RECURRING_BONUS_AFTER_LAST["interval"] == 0:
-        return RECURRING_BONUS_AFTER_LAST["amount"]
+    """Standard $1 bonus awarded EXACTLY when task count hits a multiple of 5.
+    Does NOT include the super bonus (see super_bonus_awarded_for_completion).
+    """
+    if new_task_count > 0 and new_task_count % BONUS_INTERVAL == 0:
+        return BONUS_AMOUNT
     return 0.0
 
 
-def next_bonus_milestone(tasks_completed: int) -> dict:
-    """Return {threshold, amount} for the NEXT bonus the user can unlock."""
-    for threshold, amount in BONUS_MILESTONES:
-        if tasks_completed < threshold:
-            return {"threshold": threshold, "amount": amount}
-    last_threshold, _ = BONUS_MILESTONES[-1]
-    interval = RECURRING_BONUS_AFTER_LAST["interval"]
-    next_threshold = ((tasks_completed // interval) + 1) * interval
-    return {"threshold": next_threshold, "amount": RECURRING_BONUS_AFTER_LAST["amount"]}
+def super_bonus_awarded_for_completion(new_task_count: int) -> float:
+    """$10 super bonus awarded EXACTLY when task count hits a multiple of 25."""
+    if new_task_count > 0 and new_task_count % SUPER_BONUS_INTERVAL == 0:
+        return SUPER_BONUS_AMOUNT
+    return 0.0
+
+
+def total_bonuses_earned(tasks_completed: int) -> float:
+    """Total $ from $1 bonuses across all completed cycles."""
+    return round((tasks_completed // BONUS_INTERVAL) * BONUS_AMOUNT, 2)
+
+
+def total_super_bonuses_earned(tasks_completed: int) -> float:
+    """Total $ from $10 super bonuses across all completed cycles."""
+    return round((tasks_completed // SUPER_BONUS_INTERVAL) * SUPER_BONUS_AMOUNT, 2)
 
 
 def bonuses_earned_count(tasks_completed: int) -> int:
-    """How many discrete bonus drops the user has received."""
-    count = 0
-    for threshold, _ in BONUS_MILESTONES:
-        if tasks_completed >= threshold:
-            count += 1
-    last_threshold, _ = BONUS_MILESTONES[-1]
-    if tasks_completed > last_threshold:
-        count += (tasks_completed - last_threshold) // RECURRING_BONUS_AFTER_LAST["interval"]
-    return count
+    """How many discrete $1 bonus drops the user has received."""
+    return tasks_completed // BONUS_INTERVAL
+
+
+def super_bonuses_earned_count(tasks_completed: int) -> int:
+    """How many discrete $10 super bonus drops the user has received."""
+    return tasks_completed // SUPER_BONUS_INTERVAL
+
+
+def next_bonus_milestone(tasks_completed: int) -> dict:
+    """Next $1 bonus target — always within the current 5-task cycle."""
+    cycle_position = tasks_completed % BONUS_INTERVAL
+    threshold = tasks_completed + (BONUS_INTERVAL - cycle_position) if cycle_position > 0 else tasks_completed + BONUS_INTERVAL
+    return {
+        "threshold": threshold,
+        "amount": BONUS_AMOUNT,
+        "in_cycle": cycle_position,
+        "remaining": BONUS_INTERVAL - cycle_position if cycle_position > 0 else BONUS_INTERVAL,
+        "cycle_size": BONUS_INTERVAL,
+    }
+
+
+def next_super_bonus_milestone(tasks_completed: int) -> dict:
+    """Next $10 super bonus target — always within the current 25-task cycle."""
+    cycle_position = tasks_completed % SUPER_BONUS_INTERVAL
+    threshold = tasks_completed + (SUPER_BONUS_INTERVAL - cycle_position) if cycle_position > 0 else tasks_completed + SUPER_BONUS_INTERVAL
+    return {
+        "threshold": threshold,
+        "amount": SUPER_BONUS_AMOUNT,
+        "in_cycle": cycle_position,
+        "remaining": SUPER_BONUS_INTERVAL - cycle_position if cycle_position > 0 else SUPER_BONUS_INTERVAL,
+        "cycle_size": SUPER_BONUS_INTERVAL,
+    }
