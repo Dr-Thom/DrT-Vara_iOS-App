@@ -170,5 +170,22 @@ export const withdrawalAPI = {
     return response.data;
   },
 };
-
+export const offerwallAPI = {
+  getAdgateUrl: async () => {
+    const response = await api.get('/api/offerwall/url/adgate');
+    return response.data;
+  },
+  getCpxUrl: async () => {
+    const response = await api.get('/api/offerwall/url/cpx');
+    return response.data;
+  },
+  getTransactions: async () => {
+    const response = await api.get('/api/offerwall/me/transactions');
+    return response.data;
+  },
+  health: async () => {
+    const response = await api.get('/api/offerwall/health');
+    return response.data;
+  },
+};
 export default api;
