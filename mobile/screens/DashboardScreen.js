@@ -432,6 +432,7 @@ const styles = StyleSheet.create({
   superBonusRewardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
   superBonusRewardLabel: { fontSize: 13, color: '#78350F', fontWeight: '600' },
   superBonusRewardAmount: { fontSize: 22, fontWeight: '700', color: '#B45309' },
+  superBonusLifetime: { fontSize: 12, color: '#78350F', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(180, 83, 9, 0.2)', fontWeight: '600', textAlign: 'center' },
 
   // Watch video
   watchVideoCard: {
