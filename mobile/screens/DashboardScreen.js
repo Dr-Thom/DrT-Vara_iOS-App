@@ -450,6 +450,22 @@ const styles = StyleSheet.create({
   watchVideoSub: { fontSize: 13, color: '#047857', marginTop: 2, fontWeight: '500' },
   watchVideoArrow: { fontSize: 22, color: '#065F46', fontWeight: '700', marginLeft: 8 },
 
+  // Offers CTA card
+  offersCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF5FF',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#E9D5FF',
+  },
+  offersCardTitle: { fontSize: 15, fontWeight: '700', color: '#581C87' },
+  offersCardSub: { fontSize: 13, color: '#7C3AED', marginTop: 2, fontWeight: '500' },
+  offersCardArrow: { fontSize: 22, color: '#581C87', fontWeight: '700', marginLeft: 8 },
+
   // Stats row
   statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 4 },
   statCard: {
