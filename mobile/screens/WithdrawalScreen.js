@@ -46,8 +46,8 @@ const WithdrawalScreen = () => {
     }
 
     Alert.alert(
-      'Confirm Withdrawal',
-      `Withdraw $${withdrawAmount.toFixed(2)} via ${paymentMethod.toUpperCase()}?`,
+      'Confirm Cash Out',
+      `Cash out $${withdrawAmount.toFixed(2)} via ${paymentMethod.toUpperCase()}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -91,7 +91,7 @@ const WithdrawalScreen = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Amount to Withdraw</Text>
+            <Text style={styles.sectionTitle}>Amount to Cash Out</Text>
             <TextInput
               style={styles.input}
               placeholder="0.00"
@@ -151,7 +151,7 @@ const WithdrawalScreen = () => {
             disabled={loading}
           >
             <Text style={styles.withdrawButtonText}>
-              {loading ? 'Processing...' : 'Withdraw Funds'}
+              {loading ? 'Processing...' : 'Cash Out Now'}
             </Text>
           </TouchableOpacity>
 

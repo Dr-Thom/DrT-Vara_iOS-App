@@ -97,7 +97,7 @@ const ReferralsScreen = () => {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <Text style={styles.title}>Refer & Earn</Text>
+      <Text style={styles.title}>Invite Friends</Text>
       <Text style={styles.subtitle}>
         Earn 10% of every friend's first $100. Up to $10 per friend.
       </Text>

@@ -9,7 +9,12 @@ from typing import List
 from datetime import datetime
 
 from utils.weekly_challenge import record_qualifying_referral
-from utils.economics import bonus_awarded_for_completion, next_bonus_milestone, bonuses_earned_count
+from utils.economics import (
+    bonus_awarded_for_completion,
+    super_bonus_awarded_for_completion,
+    bonuses_earned_count,
+    super_bonuses_earned_count,
+)
 from utils.streak import update_streak_on_activity, streak_multiplier, streak_tier_label
 from utils.trust import TRUST_PER_TASK, TRUST_PER_7DAY_STREAK, clamp_trust
 from utils.push import send_to_user
@@ -203,10 +208,15 @@ async def complete_task(
         # Apply multiplier to task reward (but NOT to milestone bonuses — keeps bonuses predictable)
         reward = round(base_reward * multiplier, 4)
 
-        # BONUS LADDER — new formula: 5→$1, 10→$2, 25→$5, 50→$10, 100→$25, then $25/100
+        # BONUS LADDER (new Beta MVP spec):
+        #   • $1 every 5 tasks (recurring)
+        #   • $10 super bonus every 25 tasks (recurring, additive at task #25, #50, #75, ...)
         bonus_this_call = bonus_awarded_for_completion(new_tasks_completed)
+        super_bonus_this_call = super_bonus_awarded_for_completion(new_tasks_completed)
         new_bonuses_earned_total = bonuses_earned_count(new_tasks_completed)
-        total_reward_this_call = round(reward + bonus_this_call, 4)
+        new_super_bonuses_total = super_bonuses_earned_count(new_tasks_completed)
+        total_bonus_payout = bonus_this_call + super_bonus_this_call
+        total_reward_this_call = round(reward + total_bonus_payout, 4)
 
         # TRUST — +1 per task; +5 bonus on crossing into 7-day streak
         trust_delta = TRUST_PER_TASK
@@ -215,6 +225,17 @@ async def complete_task(
         old_trust = user.get("trust_score", 50)
         new_trust = clamp_trust(old_trust + trust_delta)
         trust_gained = new_trust - old_trust
+
+        # DAILY EARNINGS — reset if last_active_date is a different day
+        today_dt = datetime(today.year, today.month, today.day)
+        last_active = user.get("last_active_date")
+        if last_active and last_active.date() == today:
+            daily_earnings_today = round(user.get("daily_earnings_today", 0.0) + total_reward_this_call, 4)
+            daily_tasks_today = user.get("daily_tasks_today", 0) + 1
+        else:
+            # New day → reset counters
+            daily_earnings_today = total_reward_this_call
+            daily_tasks_today = 1
 
         # Update user atomically
         await db.users.update_one(
@@ -228,10 +249,14 @@ async def complete_task(
                 "$set": {
                     "bonus_unlocked": new_tasks_completed >= 5,
                     "bonuses_earned": new_bonuses_earned_total,
+                    "super_bonuses_earned": new_super_bonuses_total,
                     "current_streak": new_streak,
                     "longest_streak": new_longest,
-                    "last_active_date": datetime(today.year, today.month, today.day),
+                    "last_active_date": today_dt,
                     "trust_score": new_trust,
+                    "daily_earnings_today": daily_earnings_today,
+                    "daily_tasks_today": daily_tasks_today,
+                    "daily_earnings_date": today_dt,
                 },
                 "$push": {
                     "completed_task_ids": str(task_id)
@@ -249,18 +274,25 @@ async def complete_task(
         await pay_referrer(user, total_reward_this_call)
 
         # Push notification when a milestone bonus unlocks (best-effort)
-        if bonus_this_call > 0:
+        if super_bonus_this_call > 0:
+            try:
+                await send_to_user(
+                    db,
+                    str(user_id),
+                    title=f"🚀 SUPER BONUS: ${super_bonus_this_call:.0f}!",
+                    body=f"You hit task #{new_tasks_completed} and earned a ${super_bonus_this_call:.0f} super bonus!",
+                    data={"type": "super_bonus_unlock", "amount": super_bonus_this_call, "deepLink": "vara://dashboard"},
+                )
+            except Exception as e:
+                logger.error(f"Super bonus push notification failed (non-fatal): {e}")
+        elif bonus_this_call > 0:
             try:
                 await send_to_user(
                     db,
                     str(user_id),
                     title=f"🎉 Bonus unlocked: ${bonus_this_call:.0f}!",
-                    body=f"You hit task #{new_tasks_completed} and earned a ${bonus_this_call:.0f} bonus.",
-                    data={
-                        "type": "bonus_unlock",
-                        "amount": bonus_this_call,
-                        "deepLink": "vara://dashboard",
-                    },
+                    body=f"You completed 5 more tasks and earned a ${bonus_this_call:.0f} bonus.",
+                    data={"type": "bonus_unlock", "amount": bonus_this_call, "deepLink": "vara://dashboard"},
                 )
             except Exception as e:
                 logger.error(f"Bonus push notification failed (non-fatal): {e}")
@@ -280,7 +312,9 @@ async def complete_task(
         if multiplier > 1.0:
             msg_parts[0] += f" ({streak_tier_label(new_streak)} {multiplier}x streak!)"
         if bonus_this_call > 0:
-            msg_parts.append(f"+ ${bonus_this_call:.0f} milestone bonus!")
+            msg_parts.append(f"+ ${bonus_this_call:.0f} bonus!")
+        if super_bonus_this_call > 0:
+            msg_parts.append(f"🚀 + ${super_bonus_this_call:.0f} SUPER BONUS!")
         msg = " ".join(msg_parts)
 
         return TaskCompletionResponse(

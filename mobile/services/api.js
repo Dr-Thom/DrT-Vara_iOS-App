@@ -118,6 +118,10 @@ export const usersAPI = {
     const response = await api.get('/api/users/me/stats');
     return response.data;
   },
+  getDashboard: async () => {
+    const response = await api.get('/api/users/me/dashboard');
+    return response.data;
+  },
   registerPushToken: async (pushToken, platform, timezone) => {
     const response = await api.post('/api/users/push-token', {
       push_token: pushToken,
