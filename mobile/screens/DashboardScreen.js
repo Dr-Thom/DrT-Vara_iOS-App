@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { useAds } from '../contexts/AdContext';
 import AdBanner from '../components/AdBanner';
@@ -74,6 +75,15 @@ const DashboardScreen = ({ navigation }) => {
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  // Auto-refresh dashboard whenever the screen is focused
+  // (i.e. when user navigates back from Tasks / Withdrawal / Referrals)
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+      refreshUser();
+    }, [loadDashboard, refreshUser])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
