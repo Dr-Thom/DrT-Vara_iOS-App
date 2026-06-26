@@ -60,15 +60,15 @@ const BonusExplained = () => {
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2 text-gray-700">
                     <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span>No minimum withdrawal requirement for your bonus</span>
+                    <span>$5 minimum cash-out — withdraw via GCash, PayPal, or Bank</span>
                   </li>
                   <li className="flex items-start gap-2 text-gray-700">
                     <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span>Bonus unlocks immediately after 5th task completion</span>
+                    <span>$1 Bonus unlocks every 5 tasks · $10 Super Bonus every 25 tasks</span>
                   </li>
                   <li className="flex items-start gap-2 text-gray-700">
                     <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span>Available in all withdrawal methods (GCash, PayPal, Bank)</span>
+                    <span>Real USD rewards — fully transparent earnings</span>
                   </li>
                 </ul>
               </CardContent>
@@ -92,7 +92,7 @@ const BonusExplained = () => {
                     <p className="text-white/90 text-lg mb-2">Your Welcome Bonus</p>
                     <p className="text-7xl font-bold mb-2">$1</p>
                     <p className="text-2xl font-semibold">USD</p>
-                    <p className="text-3xl font-bold text-white/90 mt-3">+ $1 every 10 tasks</p>
+                    <p className="text-3xl font-bold text-white/90 mt-3">+ $1 every 5 tasks · $10 every 25 tasks</p>
                   </div>
 
                   <div className="space-y-4 pt-6 border-t border-white/20">
@@ -106,7 +106,7 @@ const BonusExplained = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-white/90">Withdrawal:</span>
-                      <span className="font-bold text-xl">Instant</span>
+                      <span className="font-bold text-xl">$5 min</span>
                     </div>
                   </div>
 

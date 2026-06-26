@@ -2,7 +2,7 @@
 
 export const heroData = {
   headline: "Earn USD From Your Phone + Unlock a $1 USD Bonus",
-  subheadline: "Complete simple tasks and unlock your $1 USD reward after your first 5 tasks — plus another $1 every 10 tasks after that",
+  subheadline: "Complete simple tasks and unlock your $1 USD reward after your first 5 tasks — plus another $1 every 5 tasks and a $10 Super Bonus every 25 tasks",
   bonusAmount: "$1 USD",
   ctaText: "Get Started Now",
   heroImage: "https://images.unsplash.com/photo-1585930437945-2ebd52d059ca?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwzfHxtb2JpbGUlMjBlYXJuaW5nfGVufDB8fHx8MTc3NTU2OTc5N3ww&ixlib=rb-4.1.0&q=85"
@@ -31,7 +31,7 @@ export const howItWorksSteps = [
   {
     step: 3,
     title: "Earn Your Bonus",
-    description: "Complete 5 tasks to unlock your $1 USD bonus instantly. Then earn another $1 every 10 tasks after — forever.",
+    description: "Complete 5 tasks to unlock your $1 USD bonus. Earn another $1 every 5 tasks — plus a $10 Super Bonus every 25 tasks.",
     icon: "Gift"
   },
   {
@@ -53,7 +53,7 @@ export const bonusDetails = {
     },
     {
       title: "Keep Earning Bonuses",
-      description: "Every 10 tasks after that (tasks 15, 25, 35...) you earn another $1 bonus",
+      description: "Every 5 tasks you earn another $1 bonus — and every 25 tasks you unlock a $10 Super Bonus",
       icon: "TrendingUp"
     },
     {
@@ -88,7 +88,7 @@ export const testimonials = [
     name: "Angela Reyes",
     location: "Davao, Philippines",
     rating: 5,
-    comment: "Super easy to use! I complete tasks during my commute. The $1 bonus every 10 tasks keeps me motivated.",
+    comment: "Super easy to use! I complete tasks during my commute. The $1 bonus every 5 tasks keeps me motivated.",
     avatar: "https://images.unsplash.com/photo-1768244016593-8ca75b15bc92?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHw0fHxkaXZlcnNlJTIwcGVvcGxlJTIwY2VsZWJyYXRpbmclMjBwaG9uZXxlbnwwfHx8fDE3NzU1Njk4MzV8MA&ixlib=rb-4.1.0&q=85",
     earnings: "$198 USD (₱11,000+)"
   }
@@ -97,7 +97,7 @@ export const testimonials = [
 export const faqData = [
   {
     question: "How do I get my $1 USD bonus?",
-    answer: "Sign up free and complete your first 5 tasks. Your $1 USD bonus is credited automatically. After that, you earn another $1 every 10 tasks you complete (at tasks 15, 25, 35, and so on)."
+    answer: "Sign up free and complete your first 5 tasks. Your $1 USD bonus is credited automatically. You earn another $1 every 5 tasks, and a $10 Super Bonus every 25 tasks."
   },
   {
     question: "What kind of tasks will I complete?",
