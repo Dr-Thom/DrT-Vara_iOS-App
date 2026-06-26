@@ -233,6 +233,11 @@ const DashboardScreen = ({ navigation }) => {
           <Text style={styles.superBonusRewardLabel}>Reward</Text>
           <Text style={styles.superBonusRewardAmount}>{formatUSD(super_bonus.amount)}</Text>
         </View>
+        {totals.super_bonuses_earned > 0 && (
+          <Text style={styles.superBonusLifetime} data-testid="super-bonus-lifetime">
+            🏆 Total super bonuses earned: {totals.super_bonuses_earned} (${(totals.super_bonuses_earned * super_bonus.amount).toFixed(2)})
+          </Text>
+        )}
       </View>
 
       {/* ─── REWARDED VIDEO ────────────────────────────── */}
