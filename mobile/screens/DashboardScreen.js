@@ -255,7 +255,18 @@ const DashboardScreen = ({ navigation }) => {
         </View>
         <Text style={styles.watchVideoArrow}>→</Text>
       </TouchableOpacity>
-
+ {/* ─── OFFERS & SURVEYS CTA ──────────────────────── */}
+      <TouchableOpacity
+        style={styles.offersCard}
+        onPress={() => navigation.navigate('Offers')}
+        data-testid="offers-cta-btn"
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.offersCardTitle}>💎 Offers & Surveys</Text>
+          <Text style={styles.offersCardSub}>Premium rewards · $0.10 – $5.00 each</Text>
+        </View>
+        <Text style={styles.offersCardArrow}>→</Text>
+      </TouchableOpacity>
       {/* ─── ACCOUNT STATUS + STREAK ROW ───────────────── */}
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { borderLeftColor: '#10B981' }]} data-testid="account-status-card">
