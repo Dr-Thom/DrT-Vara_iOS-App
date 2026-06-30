@@ -255,7 +255,7 @@ const DashboardScreen = ({ navigation }) => {
         </View>
         <Text style={styles.watchVideoArrow}>→</Text>
       </TouchableOpacity>
- {/* ─── OFFERS & SURVEYS CTA ──────────────────────── */}
+      {/* ─── OFFERS & SURVEYS CTA ──────────────────────── */}
       <TouchableOpacity
         style={styles.offersCard}
         onPress={() => navigation.navigate('Offers')}
@@ -263,7 +263,9 @@ const DashboardScreen = ({ navigation }) => {
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.offersCardTitle}>💎 Offers & Surveys</Text>
-          <Text style={styles.offersCardSub}>Premium rewards · $0.10 – $5.00 each</Text>
+          <Text style={styles.offersCardSub}>
+            Premium rewards · $0.10 – $5.00 each
+          </Text>
         </View>
         <Text style={styles.offersCardArrow}>→</Text>
       </TouchableOpacity>
