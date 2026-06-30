@@ -90,6 +90,10 @@ const AppNavigator = () => {
             component={TasksScreen}
             options={{ title: 'Available Tasks' }}
           />
+            <Stack.Screen
+            name="Offers"
+            component={OffersScreen}
+            options={{ title: '💎 Offers & Surveys' }}
           <Stack.Screen
             name="Offers"
             component={OffersScreen}

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+📝 FILE 4: mobile/screens/OffersScreen.js (NEW)
+👉 Open: https://github.com/Dr-Thom/DrT-Vara_iOS-App/new/main/mobile/screens
+
+Name: OffersScreen.js
+
+Paste this:
+
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { offerwallAPI } from '../services/api';
@@ -64,7 +66,6 @@ const OffersScreen = ({ navigation }) => {
     setWebviewUrl(null);
   };
 
-  // ─── WebView ─────────────────────────────────────────
   if (activeProvider && webviewUrl) {
     return (
       <View style={{ flex: 1 }}>
@@ -95,7 +96,6 @@ const OffersScreen = ({ navigation }) => {
     );
   }
 
-  // ─── Provider Picker ────────────────────────────────
   return (
     <ScrollView style={styles.container} data-testid="offers-screen">
       <View style={styles.intro}>
@@ -147,57 +147,35 @@ const styles = StyleSheet.create({
   heading: { fontSize: 22, fontWeight: '700', color: '#1F2937', marginBottom: 6 },
   subheading: { fontSize: 14, color: '#6B7280', lineHeight: 20 },
   providerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 12,
-    padding: 18,
-    borderRadius: 14,
-    borderWidth: 2,
+    flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 12,
+    padding: 18, borderRadius: 14, borderWidth: 2,
   },
   providerTitle: { fontSize: 18, fontWeight: '700' },
   providerSub: { fontSize: 13, color: '#6B7280', marginTop: 4 },
   providerEarn: { fontSize: 13, fontWeight: '600', marginTop: 6 },
   providerArrow: { fontSize: 22, fontWeight: '700', marginLeft: 12 },
   infoBox: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginTop: 8,
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#fff', marginHorizontal: 20, marginTop: 8, padding: 16, borderRadius: 12,
   },
   infoTitle: { fontSize: 14, fontWeight: '700', color: '#1F2937', marginBottom: 8 },
   infoBullet: { fontSize: 13, color: '#4B5563', marginBottom: 4 },
   warningBox: {
-    backgroundColor: '#FEF3C7',
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 20,
-    padding: 12,
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
+    backgroundColor: '#FEF3C7', marginHorizontal: 20, marginTop: 12, marginBottom: 20,
+    padding: 12, borderRadius: 10, borderLeftWidth: 3, borderLeftColor: '#F59E0B',
   },
   warningText: { fontSize: 12, color: '#78350F', lineHeight: 18 },
   webHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 12,
-    backgroundColor: '#3B82F6',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, paddingTop: 50, paddingBottom: 12, backgroundColor: '#3B82F6',
   },
   webClose: { color: '#fff', fontSize: 15, fontWeight: '600', width: 60 },
   webTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
   webLoader: {
-    position: 'absolute',
-    inset: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff',
   },
   webLoaderText: { marginTop: 12, color: '#6B7280' },
 });
 
-export default OffersScreen;
+
+Agent is waiting...
