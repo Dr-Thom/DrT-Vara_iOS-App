@@ -17,10 +17,10 @@ import mobileAds, {
   RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
-import { ADMOB_CONFIG, APP_CONFIG } from '../config';
+import { ADMOB_CONFIG, APP_CONFIG, IS_TEST_ADS } from '../config';
 
-const INTERSTITIAL_ID = __DEV__ ? TestIds.INTERSTITIAL : ADMOB_CONFIG.INTERSTITIAL_AD_UNIT;
-const REWARDED_ID = __DEV__ ? TestIds.REWARDED : ADMOB_CONFIG.REWARDED_AD_UNIT;
+const INTERSTITIAL_ID = IS_TEST_ADS ? TestIds.INTERSTITIAL : ADMOB_CONFIG.INTERSTITIAL_AD_UNIT;
+const REWARDED_ID = IS_TEST_ADS ? TestIds.REWARDED : ADMOB_CONFIG.REWARDED_AD_UNIT;
 const TASKS_BEFORE_INTERSTITIAL = APP_CONFIG.TASKS_BEFORE_INTERSTITIAL || 3;
 
 const AdContext = createContext({});

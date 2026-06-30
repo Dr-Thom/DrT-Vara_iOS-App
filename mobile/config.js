@@ -5,7 +5,32 @@ export const API_CONFIG = {
   BACKEND_URL: 'https://drt-vara-ios-app.onrender.com',
 };
 
+// ─── AdMob Ad-Mode Resolver ───────────────────────────────
+// TEST ads in: development, debug, internal testing, closed testing
+// LIVE ads in: production builds only (EXPO_PUBLIC_AD_MODE=live in eas.json)
+//
+// Source of truth (highest priority first):
+//   1. __DEV__               → Expo Go / dev client  → TEST
+//   2. EXPO_PUBLIC_AD_MODE   → Set per eas.json build profile
+//                              "test" → TEST ads
+//                              "live" → LIVE ads
+//   3. Default               → TEST (safer — never accidentally click live ads in testing)
+const ENV_AD_MODE = (process.env.EXPO_PUBLIC_AD_MODE || '').toLowerCase();
+export const IS_TEST_ADS =
+  // eslint-disable-next-line no-undef
+  __DEV__ || ENV_AD_MODE !== 'live';
+export const AD_MODE_LABEL = IS_TEST_ADS ? 'TEST' : 'LIVE';
+
+// Startup log (printed once when the module first loads)
+// Tells QA + Play Store reviewers + developers which ad mode is active.
+// eslint-disable-next-line no-console
+console.log(
+  `[SAMSON AdMob] Running in ${AD_MODE_LABEL} ADS mode ` +
+  `(EXPO_PUBLIC_AD_MODE="${process.env.EXPO_PUBLIC_AD_MODE || 'unset'}", __DEV__=${typeof __DEV__ !== 'undefined' ? __DEV__ : 'unknown'})`
+);
+
 // AdMob Configuration (REAL production IDs — VARA AdMob account)
+// These are ONLY served when IS_TEST_ADS === false (i.e. production builds)
 export const ADMOB_CONFIG = {
   APP_ID: 'ca-app-pub-2444447122681811~9772357899',
   BANNER_AD_UNIT: 'ca-app-pub-2444447122681811/6825110443',
