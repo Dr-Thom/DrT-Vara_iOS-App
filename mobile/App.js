@@ -1,7 +1,6 @@
 👉 https://github.com/Dr-Thom/DrT-Vara_iOS-App/edit/main/mobile/App.js
 
-Cmd+A → Delete → Paste this complete file:
-
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
 import React, { useEffect, useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,7 +10,6 @@ import { AdProvider } from './contexts/AdContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { attachNotificationListeners } from './services/notifications';
 
-// Screens
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import DashboardScreen from './screens/DashboardScreen';
@@ -144,36 +142,27 @@ export default function App() {
   // Still checking onboarding flag → render nothing briefly
   if (user && onboardingSeen === null) {
     return null;
+  if (loading) return null;
+  if (user && onboardingSeen === false) {
+    return <OnboardingScreen onDone={() => setOnboardingSeen(true)} />;
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
   }
+  if (user && onboardingSeen === null) return null;
 
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#3B82F6',
-        },
+        headerStyle: { backgroundColor: '#3B82F6' },
         headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: '600',
-        },
+        headerTitleStyle: { fontWeight: '600' },
       }}
     >
       {!user ? (
-        // Auth Stack
         <>
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Signup"
-            component={SignupScreen}
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Signup" component={SignupScreen} options={{ headerShown: false }} />
         </>
       ) : (
-        // App Stack
         <>
           <Stack.Screen
             name="Dashboard"
@@ -213,6 +202,13 @@ export default function App() {
             component={WithdrawalScreen}
             options={{ title: 'Cash Out' }}
           />
+          <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'SAMSON', headerLeft: null }} />
+          <Stack.Screen name="Tasks" component={TasksScreen} options={{ title: 'Available Tasks' }} />
+          <Stack.Screen name="Offers" component={OffersScreen} options={{ title: '💎 Offers & Surveys' }} />
+          <Stack.Screen name="Calculator" component={CalculatorScreen} options={{ title: 'Earnings Calculator' }} />
+          <Stack.Screen name="Referrals" component={ReferralsScreen} options={{ title: 'Invite Friends' }} />
+          <Stack.Screen name="Withdrawal" component={WithdrawalScreen} options={{ title: 'Cash Out' }} />
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
         </>
       )}
     </Stack.Navigator>
@@ -220,29 +216,33 @@ export default function App() {
 };
 
 export default function App() {
-  const navRef = useRef(null);
+  const navigationRef = useRef(null);
 
   useEffect(() => {
-    const detach = attachNotificationListeners((screen, params) => {
+    const cleanup = attachNotificationListeners((event) => {
       try {
-        navRef.current?.navigate(screen, params);
-      } catch (e) {
-        console.warn('Nav from notification failed:', e?.message);
-      }
+        const url = event?.notification?.request?.content?.data?.deepLink;
+        if (!url) return;
+        if (typeof url === 'string' && url.startsWith('vara://')) {
+          const path = url.replace('vara://', '');
+          const route = path.charAt(0).toUpperCase() + path.slice(1);
+          navigationRef.current?.navigate(route);
+        }
+      } catch (e) {}
     });
-    return detach;
+    return cleanup;
   }, []);
 
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
-        <AuthProvider>
-          <AdProvider>
-            <NavigationContainer ref={navRef}>
+        <NavigationContainer ref={navigationRef}>
+          <AuthProvider>
+            <AdProvider>
               <AppNavigator />
-            </NavigationContainer>
-          </AdProvider>
-        </AuthProvider>
+            </AdProvider>
+          </AuthProvider>
+        </NavigationContainer>
       </SafeAreaProvider>
     </ErrorBoundary>
   );

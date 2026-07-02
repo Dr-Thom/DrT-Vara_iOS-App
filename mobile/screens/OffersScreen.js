@@ -1,10 +1,10 @@
+
 📝 FILE 4: mobile/screens/OffersScreen.js (NEW)
 👉 Open: https://github.com/Dr-Thom/DrT-Vara_iOS-App/new/main/mobile/screens
 
 Name: OffersScreen.js
 
-Paste this:
-
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
@@ -19,15 +19,24 @@ const OFFER_PROVIDERS = [
     title: '💎 AdGate Offers',
     subtitle: 'Apps, signups, free trials',
     earnings: 'Earn $0.50 – $5.00 per offer',
+    title: 'AdGate Offers',
+    subtitle: 'Apps, signups, free trials',
+    earnings: 'Earn $0.50 - $5.00 per offer',
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
     color: '#3B82F6',
     bgColor: '#EFF6FF',
     borderColor: '#BFDBFE',
   },
   {
     key: 'cpx',
+
     title: '📋 CPX Surveys',
     subtitle: 'Quick surveys, 5–15 minutes',
     earnings: 'Earn $0.10 – $2.00 per survey',
+    title: 'CPX Surveys',
+    subtitle: 'Quick surveys, 5-15 minutes',
+    earnings: 'Earn $0.10 - $2.00 per survey',
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
     color: '#7C3AED',
     bgColor: '#FAF5FF',
     borderColor: '#E9D5FF',
@@ -52,6 +61,8 @@ const OffersScreen = ({ navigation }) => {
       Alert.alert(
         'Coming Soon',
         detail === 'Offerwall not configured yet' || detail === 'Offerwall not configured'
+        detail.includes('not configured')
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
           ? 'This offerwall is being set up. Check back in a few days!'
           : detail,
       );
@@ -72,6 +83,9 @@ const OffersScreen = ({ navigation }) => {
         <View style={styles.webHeader}>
           <TouchableOpacity onPress={closeWebView} data-testid="close-webview-btn">
             <Text style={styles.webClose}>✕ Close</Text>
+          <TouchableOpacity onPress={closeWebView}>
+            <Text style={styles.webClose}>X Close</Text>
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
           </TouchableOpacity>
           <Text style={styles.webTitle}>
             {OFFER_PROVIDERS.find((p) => p.key === activeProvider)?.title}
@@ -85,6 +99,8 @@ const OffersScreen = ({ navigation }) => {
             <View style={styles.webLoader}>
               <ActivityIndicator size="large" color="#3B82F6" />
               <Text style={styles.webLoaderText}>Loading offers…</Text>
+              <Text style={styles.webLoaderText}>Loading offers...</Text>
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
             </View>
           )}
           onError={() => {
@@ -102,6 +118,12 @@ const OffersScreen = ({ navigation }) => {
         <Text style={styles.heading}>💎 Earn More with Offers</Text>
         <Text style={styles.subheading}>
           Premium offers and surveys — beyond your daily tasks. Rewards credited automatically within minutes.
+    <ScrollView style={styles.container}>
+      <View style={styles.intro}>
+        <Text style={styles.heading}>Earn More with Offers</Text>
+        <Text style={styles.subheading}>
+          Premium offers and surveys - beyond your daily tasks. Rewards credited automatically within minutes.
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
         </Text>
       </View>
 
@@ -112,6 +134,7 @@ const OffersScreen = ({ navigation }) => {
           onPress={() => openProvider(p.key)}
           disabled={loading}
           data-testid={`offer-provider-${p.key}-btn`}
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
         >
           <View style={{ flex: 1 }}>
             <Text style={[styles.providerTitle, { color: p.color }]}>{p.title}</Text>
@@ -120,6 +143,8 @@ const OffersScreen = ({ navigation }) => {
           </View>
           <Text style={[styles.providerArrow, { color: p.color }]}>
             {loading && activeProvider === p.key ? '⏳' : '→'}
+            {loading && activeProvider === p.key ? '...' : '>'}
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
           </Text>
         </TouchableOpacity>
       ))}
@@ -135,6 +160,8 @@ const OffersScreen = ({ navigation }) => {
       <View style={styles.warningBox}>
         <Text style={styles.warningText}>
           ⚠️ Only complete offers you're genuinely interested in. Be honest in surveys — providers can reverse rewards for inaccurate answers.
+          Only complete offers you are genuinely interested in. Be honest in surveys - providers can reverse rewards for inaccurate answers.
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
         </Text>
       </View>
     </ScrollView>
@@ -177,5 +204,6 @@ const styles = StyleSheet.create({
   webLoaderText: { marginTop: 12, color: '#6B7280' },
 });
 
-
 Agent is waiting...
+export default OffersScreen;
+SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
