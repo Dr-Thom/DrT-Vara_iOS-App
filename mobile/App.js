@@ -7,7 +7,6 @@ import { AdProvider } from './contexts/AdContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { attachNotificationListeners } from './services/notifications';
 
-// Screens
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import DashboardScreen from './screens/DashboardScreen';
@@ -20,11 +19,9 @@ import OnboardingScreen, { hasSeenOnboarding } from './screens/OnboardingScreen'
 
 const Stack = createNativeStackNavigator();
 
-// AdMob temporarily disabled — re-enable once Google account country issue is resolved.
-
 const AppNavigator = () => {
   const { user, loading } = useAuth();
-  const [onboardingSeen, setOnboardingSeen] = useState(null); // null while loading
+  const [onboardingSeen, setOnboardingSeen] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -34,82 +31,33 @@ const AppNavigator = () => {
     }
   }, [user]);
 
-  if (loading) {
-    return null;
-  }
-
-  // Authenticated, first time → show onboarding
+  if (loading) return null;
   if (user && onboardingSeen === false) {
     return <OnboardingScreen onDone={() => setOnboardingSeen(true)} />;
   }
-
-  // Still checking onboarding flag → render nothing briefly
-  if (user && onboardingSeen === null) {
-    return null;
-  }
+  if (user && onboardingSeen === null) return null;
 
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#3B82F6',
-        },
+        headerStyle: { backgroundColor: '#3B82F6' },
         headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: '600',
-        },
+        headerTitleStyle: { fontWeight: '600' },
       }}
     >
       {!user ? (
-        // Auth Stack
         <>
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Signup"
-            component={SignupScreen}
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Signup" component={SignupScreen} options={{ headerShown: false }} />
         </>
       ) : (
-        // App Stack
         <>
-          <Stack.Screen
-            name="Dashboard"
-            component={DashboardScreen}
-            options={{
-              title: 'SAMSON',
-              headerLeft: null,
-            }}
-          />
-          <Stack.Screen
-            name="Tasks"
-            component={TasksScreen}
-            options={{ title: 'Available Tasks' }}
-          />
-          <Stack.Screen
-            name="Offers"
-            component={OffersScreen}
-            options={{ title: '💎 Offers & Surveys' }}
-          />
-          <Stack.Screen
-            name="Calculator"
-            component={CalculatorScreen}
-            options={{ title: 'Earnings Calculator' }}
-          />
-          <Stack.Screen
-            name="Referrals"
-            component={ReferralsScreen}
-            options={{ title: 'Invite Friends' }}
-          />
-          <Stack.Screen
-            name="Withdrawal"
-            component={WithdrawalScreen}
-            options={{ title: 'Cash Out' }}
-          />
+          <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'SAMSON', headerLeft: null }} />
+          <Stack.Screen name="Tasks" component={TasksScreen} options={{ title: 'Available Tasks' }} />
+          <Stack.Screen name="Offers" component={OffersScreen} options={{ title: 'Offers & Surveys' }} />
+          <Stack.Screen name="Calculator" component={CalculatorScreen} options={{ title: 'Earnings Calculator' }} />
+          <Stack.Screen name="Referrals" component={ReferralsScreen} options={{ title: 'Invite Friends' }} />
+          <Stack.Screen name="Withdrawal" component={WithdrawalScreen} options={{ title: 'Cash Out' }} />
         </>
       )}
     </Stack.Navigator>
