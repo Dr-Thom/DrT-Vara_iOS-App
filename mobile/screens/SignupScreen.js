@@ -194,9 +194,6 @@ const styles = StyleSheet.create({
   passwordInput: { paddingRight: 64 },
   passwordToggle: { position: 'absolute', right: 12, top: 0, bottom: 16, justifyContent: 'center', paddingHorizontal: 8 },
   passwordToggleText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
-  input: { backgroundColor: '#fff', borderRadius: 8, padding: 14, fontSize: 16,
-    color: '#1F2937', borderWidth: 1, borderColor: '#D1D5DB', marginBottom: 16 },
- SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
   inputValid: { borderColor: '#10B981', borderWidth: 2 },
   inputInvalid: { borderColor: '#EF4444', borderWidth: 2 },
   validText: { color: '#059669', fontSize: 13, marginTop: -12, marginBottom: 16, fontWeight: '600' },

@@ -170,6 +170,7 @@ export const withdrawalAPI = {
     return response.data;
   },
 };
+
 export const offerwallAPI = {
   getAdgateUrl: async () => {
     const response = await api.get('/api/offerwall/url/adgate');
@@ -188,4 +189,6 @@ export const offerwallAPI = {
     return response.data;
   },
 };
+
+
 export default api;

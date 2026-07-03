@@ -255,11 +255,8 @@ const DashboardScreen = ({ navigation }) => {
         </View>
         <Text style={styles.watchVideoArrow}>→</Text>
       </TouchableOpacity>
-<<<<<<< HEAD
+
       {/* ─── OFFERS & SURVEYS CTA ──────────────────────── */}
-=======
- {/* ─── OFFERS & SURVEYS CTA ──────────────────────── */}
->>>>>>> SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
       <TouchableOpacity
         style={styles.offersCard}
         onPress={() => navigation.navigate('Offers')}
@@ -267,26 +264,11 @@ const DashboardScreen = ({ navigation }) => {
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.offersCardTitle}>💎 Offers & Surveys</Text>
-<<<<<<< HEAD
-          <Text style={styles.offersCardSub}>
-            Premium rewards · $0.10 – $5.00 each
-          </Text>
-        </View>
-        <Text style={styles.offersCardArrow}>→</Text>
-      </TouchableOpacity>
-      {/* ─── ACCOUNT STATUS + STREAK ROW ───────────────── */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, { borderLeftColor: '#10B981' }]} data-testid="account-status-card">
-          <Text style={styles.statLabel}>Account Status</Text>
-          <Text style={styles.statValue}>{account_status.verified ? 'Verified' : 'Pending'}</Text>
-          {account_status.instant_cash_out_eligible && (
-            <Text style={styles.statSub}>Instant Cash Out Eligible</Text>
-          )}
-        </View>
           <Text style={styles.offersCardSub}>Premium rewards · $0.10 – $5.00 each</Text>
         </View>
         <Text style={styles.offersCardArrow}>→</Text>
       </TouchableOpacity>
+
       {/* ─── ACCOUNT STATUS + STREAK ROW ───────────────── */}
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { borderLeftColor: '#10B981' }]} data-testid="account-status-card">
@@ -296,7 +278,6 @@ const DashboardScreen = ({ navigation }) => {
             <Text style={styles.statSub}>Instant Cash Out Eligible</Text>
           )}
         </View>
-SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
         <View style={[styles.statCard, { borderLeftColor: '#F59E0B' }]} data-testid="streak-card">
           <Text style={styles.statLabel}>🔥 Current Streak</Text>
           <Text style={styles.statValue}>{streak.current} Day{streak.current === 1 ? '' : 's'}</Text>
@@ -457,7 +438,6 @@ const styles = StyleSheet.create({
 
   // Watch video
   watchVideoCard: {
-<<<<<<< HEAD
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F0FDF4',
@@ -466,82 +446,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#BBF7D0',
-  },
-  watchVideoDisabled: { opacity: 0.55 },
-  watchVideoTitle: { fontSize: 15, fontWeight: '700', color: '#065F46' },
-  watchVideoSub: { fontSize: 13, color: '#047857', marginTop: 2, fontWeight: '500' },
-  watchVideoArrow: { fontSize: 22, color: '#065F46', fontWeight: '700', marginLeft: 8 },
-
-  // Offers CTA card
-  offersCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAF5FF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
->>>>>>> SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderWidth: 2,
-<<<<<<< HEAD
-    borderColor: '#E9D5FF',
-  },
-  offersCardTitle: { fontSize: 15, fontWeight: '700', color: '#581C87' },
-  offersCardSub: { fontSize: 13, color: '#7C3AED', marginTop: 2, fontWeight: '500' },
-  offersCardArrow: { fontSize: 22, color: '#581C87', fontWeight: '700', marginLeft: 8 },
-
-  // Stats row
-  statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 4 },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    borderLeftWidth: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  statLabel: { fontSize: 11, color: '#6B7280', fontWeight: '700', textTransform: 'uppercase' },
-  statValue: { fontSize: 22, fontWeight: '700', color: '#1F2937', marginTop: 2 },
-  statSub: { fontSize: 11, color: '#6B7280', marginTop: 4 },
-  streakHint: { fontSize: 12, color: '#6B7280', textAlign: 'center', marginHorizontal: 20, marginTop: 6, marginBottom: 12, fontStyle: 'italic' },
-
-  // Progress bar
-  progressBarBg: { height: 10, backgroundColor: '#E5E7EB', borderRadius: 5, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 5 },
-
-  // Referral card
-  referralCard: { backgroundColor: '#FAF5FF', borderWidth: 1, borderColor: '#E9D5FF' },
-  referralTitle: { fontSize: 18, fontWeight: '700', color: '#581C87', marginBottom: 12 },
-  referralRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  referralCheckbox: { fontSize: 20, color: '#7C3AED', marginRight: 10, width: 26 },
-  referralFriend: { fontSize: 15, color: '#374151' },
-  referralFriendDone: { color: '#7C3AED', fontWeight: '600' },
-  referralRewardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#E9D5FF' },
-  referralRewardLabel: { fontSize: 13, fontWeight: '600', color: '#581C87' },
-  referralRewardAmount: { fontSize: 18, fontWeight: '700', color: '#7C3AED' },
-  referralButton: { backgroundColor: '#7C3AED', borderRadius: 8, padding: 12, alignItems: 'center', marginTop: 12 },
-  referralButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-
-  // Primary CTA
-  primaryAction: {
-    backgroundColor: '#3B82F6',
-    borderRadius: 12,
-    padding: 18,
-    alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
     borderColor: '#BBF7D0',
   },
   watchVideoDisabled: { opacity: 0.55 },
@@ -613,7 +517,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-SAMSON: Offerwall screens, LoginScreen fix, AdMob env switching, dashboard beta
   primaryActionText: { fontSize: 18, fontWeight: '700', color: '#fff' },
   primaryActionSub: { fontSize: 13, color: '#DBEAFE', marginTop: 2 },
 
