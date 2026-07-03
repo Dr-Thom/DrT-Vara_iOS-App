@@ -21,7 +21,6 @@ from routes.stats import router as stats_router
 from routes.users import router as users_router
 from routes.legal import router as legal_router
 from routes.offerwall import router as offerwall_router
-from routes.dev_sync import router as dev_sync_router
 from routes.admin import router as admin_router
 
 # Import seed functions
@@ -46,7 +45,6 @@ app.include_router(stats_router)
 app.include_router(users_router)
 app.include_router(legal_router)
 app.include_router(offerwall_router)
-app.include_router(dev_sync_router)
 app.include_router(admin_router)
 
 # CORS - use frontend URL from env
