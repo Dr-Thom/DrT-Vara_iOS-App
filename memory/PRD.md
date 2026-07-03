@@ -23,6 +23,25 @@ Build a landing page for VARA - an app where users can earn USD from their phone
    - Needs: Transparency, good user experience, immediate rewards
 
 ## What's Been Implemented
+### 🌱 SAMSON Beta Tasks Seed (Jul 3, 2026)
+- Added `POST /api/admin/seed-beta-tasks` (admin-only, idempotent, supports `?replace=true`) and standalone `python -m scripts.seed_beta_tasks [--replace]` script.
+- Seeds exactly 5 beta tasks with a `beta: true` marker in DB:
+  1. Complete Profile Check — $0.10 (data_entry)
+  2. Watch Rewarded Video — $0.05 (video)
+  3. Visit Offers Screen — $0.10 (data_entry)
+  4. Review Withdrawal Screen — $0.10 (data_entry)
+  5. Submit Beta Feedback — $1.00 (survey)
+- Also `GET /api/admin/beta-tasks` for admin diagnostic listing.
+- Tests: /app/backend/tests/test_beta_tasks_seed.py — 9/9 backend tests pass (testing_agent iteration_8).
+- Files: /app/backend/routes/admin.py, /app/backend/scripts/seed_beta_tasks.py, /app/backend/server.py.
+
+### 🔧 Mobile Source Sync Endpoint (Jul 3, 2026) — Local repo contamination workaround
+- User's iMac local repo accumulated AI instruction text (emojis, GitHub URLs, markdown, merge markers) inside multiple JS files, blocking EAS bundling.
+- Added `GET /api/dev/mobile-tarball` (Emergent preview backend only, NOT deployed to Render) that returns a fresh tarball of clean /app/mobile source files (24 JS + 3 config = 31 files, ~33 KB).
+- One-line sync command for iMac: `curl -fsSL <preview-url>/api/dev/mobile-tarball -o /tmp/clean.tar.gz && tar -xzf /tmp/clean.tar.gz`
+- Files: /app/backend/routes/dev_sync.py.
+
+
 ### 🛠 Mobile Build Fix (May 4, 2026) — OTA Update Crash
 - Problem: APK launched with red `Uncaught Error: java.io.IOException: Failed to download remote update`. The OTA fetch was failing because no JS bundle was published to the `preview` channel.
 - Fix: Disabled Expo OTA in `/app/mobile/app.json` (`updates.enabled: false`, `checkAutomatically: NEVER`, `runtimeVersion.policy: appVersion`). Bundle is now fully embedded in the APK.
