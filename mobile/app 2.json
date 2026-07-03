@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "SAMSON",
+    "slug": "vara",
+    "scheme": "vara",
+    "version": "1.0.13",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E3A8A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vara.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E3A8A"
+      },
+      "package": "com.vara.app",
+      "versionCode": 14,
+      "googleServicesFile": "./google-services.json",
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE", "POST_NOTIFICATIONS"]
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#1E3A8A",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "./plugins/withAdMobLocal.js",
+        {
+          "androidAppId": "ca-app-pub-2444447122681811~9772357899"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "961f1283-c5be-41ea-b19c-a947d8fa5a43"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
