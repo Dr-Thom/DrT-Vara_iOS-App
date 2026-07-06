@@ -251,7 +251,3 @@ For any issues or questions, refer to:
 - Expo Docs: https://docs.expo.dev/
 - AdMob Docs: https://developers.google.com/admob/android/quick-start
 - React Native Docs: https://reactnative.dev/
-
----
-
-**Built with ❤️ using Emergent AI**
