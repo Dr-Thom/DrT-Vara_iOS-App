@@ -23,6 +23,20 @@ Build a landing page for VARA - an app where users can earn USD from their phone
    - Needs: Transparency, good user experience, immediate rewards
 
 ## What's Been Implemented
+### 🎯 SAMSON Beta Operations Center (Jul 6, 2026)
+- Public portal at `/beta` for closed beta testers (Nigeria + Philippines). No auth required for submissions.
+- **Sections**: Hero (v1.0.13, Build 19, Closed Beta Active), Beta Instructions, Daily Checklist (6 items, localStorage-persisted, resets daily), Bug Report Form, Suggestion Form, Known Issues, $100 USD Launch Bonus reward, FAQ (6 items), Contact (support@samsonusd.com).
+- **Backend endpoints** (`/app/backend/routes/beta.py`):
+  - `POST /api/beta/bug-reports` — public, stores in `beta_bug_reports` collection with timestamp + IP
+  - `POST /api/beta/suggestions` — public, stores in `beta_suggestions` collection
+  - `GET /api/beta/counts` — admin-only (JWT or `?key=BETA_EXPORT_KEY`)
+  - `GET /api/beta/export.csv?kind=bugs|suggestions|all` — admin CSV export
+- **Brand palette**: deep blue #0B2A5B, royal #1E4FBF, navy #082047, light gray #F5F7FB, green #16A34A.
+- **Env vars** (frontend/.env, currently `#`): `REACT_APP_PLAY_STORE_URL`, `REACT_APP_BETA_GUIDE_URL`, `REACT_APP_FEEDBACK_FORM_URL` — set to real URLs when available.
+- **Tests**: iteration_10.json — 13/13 backend + 100% frontend PASS. Test file: `/app/backend/tests/test_beta.py`.
+- **Files**: `/app/backend/routes/beta.py`, `/app/frontend/src/pages/BetaOps.jsx`, `/app/frontend/src/App.js` (route), `/app/frontend/.env` (env vars).
+
+
 ### 🌱 SAMSON Beta Tasks Seed (Jul 3, 2026)
 - Added `POST /api/admin/seed-beta-tasks` (admin-only, idempotent, supports `?replace=true`) and standalone `python -m scripts.seed_beta_tasks [--replace]` script.
 - Seeds exactly 5 beta tasks with a `beta: true` marker in DB:
