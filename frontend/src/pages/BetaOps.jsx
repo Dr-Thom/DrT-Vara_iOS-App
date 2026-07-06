@@ -488,7 +488,7 @@ const BugReportForm = () => {
           </div>
           <div className="sm:col-span-2">
             <Field
-              label="Screenshot or Video Link (optional)"
+              label="Screenshot or video link (optional)"
               name="screenshot_link"
               value={f.screenshot_link}
               onChange={onChange}
