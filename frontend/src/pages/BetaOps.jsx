@@ -25,6 +25,7 @@ const BRAND = {
 };
 
 const CHECKLIST_KEY = 'samson_beta_checklist_v1';
+const TESTER_EMAIL_KEY = 'samson_beta_tester_email';
 const CHECKLIST_ITEMS = [
   { id: 'login', label: 'Log in to SAMSON' },
   { id: 'task', label: 'Complete a task' },
@@ -281,11 +282,13 @@ const Instructions = () => (
 
 const DailyChecklist = () => {
   const [checked, setChecked] = useState({});
+  const [testerEmail, setTesterEmail] = useState('');
+  const [emailDraft, setEmailDraft] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || '{}');
-      // Reset if a new UTC day
       const today = new Date().toISOString().slice(0, 10);
       if (saved.date !== today) {
         setChecked({});
@@ -296,13 +299,49 @@ const DailyChecklist = () => {
     } catch (e) {
       setChecked({});
     }
+    const savedEmail = localStorage.getItem(TESTER_EMAIL_KEY) || '';
+    setTesterEmail(savedEmail);
   }, []);
 
-  const toggle = (id) => {
-    const next = { ...checked, [id]: !checked[id] };
+  const saveEmail = () => {
+    const clean = (emailDraft || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+      toast.error('Please enter a valid email');
+      return;
+    }
+    localStorage.setItem(TESTER_EMAIL_KEY, clean);
+    setTesterEmail(clean);
+    toast.success('Email saved. Your progress will now count toward the $100 bonus.');
+  };
+
+  const clearEmail = () => {
+    localStorage.removeItem(TESTER_EMAIL_KEY);
+    setTesterEmail('');
+    setEmailDraft('');
+  };
+
+  const toggle = async (id) => {
+    const nextChecked = !checked[id];
+    const next = { ...checked, [id]: nextChecked };
     setChecked(next);
     const today = new Date().toISOString().slice(0, 10);
     localStorage.setItem(CHECKLIST_KEY, JSON.stringify({ date: today, items: next }));
+
+    // Only log to backend when checking (not unchecking) and email is set
+    if (nextChecked && testerEmail) {
+      setSaving(true);
+      try {
+        await axios.post(`${API}/api/beta/tester-activity`, {
+          email: testerEmail,
+          item_id: id,
+        });
+      } catch (err) {
+        // Non-blocking — checklist state still saves locally
+        console.warn('Activity log failed:', err?.response?.data || err?.message);
+      } finally {
+        setSaving(false);
+      }
+    }
   };
 
   const doneCount = CHECKLIST_ITEMS.filter((i) => checked[i.id]).length;
@@ -310,8 +349,53 @@ const DailyChecklist = () => {
 
   return (
     <Section id="checklist" title="Daily Checklist" icon={CheckCircle2}
-      subtitle="Complete these every day to qualify for the Launch Bonus. Resets at UTC midnight.">
+      subtitle="Complete these every day to qualify for the $100 Launch Bonus. Resets at UTC midnight.">
+      {!testerEmail && (
+        <Card className="p-5 sm:p-6 mb-4" style={{ backgroundColor: '#EFF6FF', borderColor: '#93C5FD' }}>
+          <div className="flex items-start gap-3 mb-3">
+            <Shield size={20} style={{ color: BRAND.deepBlue }} className="flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold text-sm mb-1" style={{ color: BRAND.navy }}>
+                Link your tester email
+              </div>
+              <div className="text-sm" style={{ color: BRAND.muted }}>
+                Use the same email you use to log into SAMSON. Your daily activity will count toward your $100 bonus.
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={emailDraft}
+              onChange={(e) => setEmailDraft(e.target.value)}
+              placeholder="you@email.com"
+              data-testid="input-tester-email"
+              className="flex-1 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+              style={{ border: `1px solid ${BRAND.border}`, backgroundColor: 'white' }}
+            />
+            <PrimaryButton onClick={saveEmail} testId="btn-save-tester-email">
+              Save Email
+            </PrimaryButton>
+          </div>
+        </Card>
+      )}
       <Card className="p-5 sm:p-6">
+        {testerEmail && (
+          <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: `1px solid ${BRAND.border}` }}>
+            <div className="text-xs sm:text-sm" style={{ color: BRAND.muted }}>
+              Logged as: <span className="font-semibold" style={{ color: BRAND.text }} data-testid="tester-email-display">{testerEmail}</span>
+              {saving && <span className="ml-2 opacity-60">saving…</span>}
+            </div>
+            <button
+              onClick={clearEmail}
+              className="text-xs underline"
+              style={{ color: BRAND.muted }}
+              data-testid="btn-clear-tester-email"
+            >
+              Change
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-medium" style={{ color: BRAND.muted }}>
             {doneCount} / {CHECKLIST_ITEMS.length} completed today

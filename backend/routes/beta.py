@@ -59,6 +59,16 @@ class SuggestionIn(BaseModel):
     details: str = Field(min_length=5, max_length=5000)
 
 
+VALID_CHECKLIST_ITEMS = {"login", "task", "ad", "offers", "dashboard", "report"}
+
+
+class ActivityIn(BaseModel):
+    email: EmailStr
+    item_id: Literal["login", "task", "ad", "offers", "dashboard", "report"]
+    # Optional client-supplied date (YYYY-MM-DD). Defaults to server UTC date.
+    date: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
 # ---------- Helpers ----------------------------------------------------------
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -109,6 +119,153 @@ async def submit_suggestion(payload: SuggestionIn, request: Request):
         f"from={payload.email}"
     )
     return {"id": str(result.inserted_id), "created_at": doc["created_at"]}
+
+
+# ---------- Tester activity tracking -----------------------------------------
+@router.post("/tester-activity", status_code=200)
+async def log_activity(payload: ActivityIn):
+    """
+    Log a checklist item completion for a beta tester.
+    Idempotent: same (email, date, item_id) is upserted, not duplicated.
+    Returns {ok, email, date, items_completed_today, all_six_today}.
+    """
+    email = payload.email.lower()
+    date = payload.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    await db.beta_tester_activity.update_one(
+        {"email": email, "date": date, "item_id": payload.item_id},
+        {
+            "$set": {"email": email, "date": date, "item_id": payload.item_id},
+            "$setOnInsert": {"created_at": _now_iso()},
+        },
+        upsert=True,
+    )
+
+    # Fetch today's item set
+    today_items = await db.beta_tester_activity.distinct(
+        "item_id", {"email": email, "date": date}
+    )
+    completed_today = len(today_items)
+    all_six = completed_today >= len(VALID_CHECKLIST_ITEMS)
+
+    logger.info(
+        f"beta.activity: {email} date={date} item={payload.item_id} "
+        f"today={completed_today}/6"
+    )
+    return {
+        "ok": True,
+        "email": email,
+        "date": date,
+        "items_completed_today": completed_today,
+        "all_six_today": all_six,
+    }
+
+
+@router.get("/tester-activity/me")
+async def get_my_activity(email: EmailStr = Query(...), window_days: int = Query(default=14, ge=1, le=90)):
+    """
+    Public: return this tester's own activity summary for the last N days.
+    { email, days_active, full_days, per_day: [{date, items: [...], count, is_full}] }
+    """
+    email = email.lower()
+    today = datetime.now(timezone.utc).date()
+    start = today.toordinal() - (window_days - 1)
+    dates_in_window = [
+        datetime.fromordinal(start + i).strftime("%Y-%m-%d")
+        for i in range(window_days)
+    ]
+
+    cursor = db.beta_tester_activity.find(
+        {"email": email, "date": {"$in": dates_in_window}}
+    )
+    by_day = {}
+    async for d in cursor:
+        by_day.setdefault(d["date"], set()).add(d["item_id"])
+
+    per_day = []
+    days_active = 0
+    full_days = 0
+    for date_str in dates_in_window:
+        items = sorted(by_day.get(date_str, set()))
+        count = len(items)
+        is_full = count >= len(VALID_CHECKLIST_ITEMS)
+        if count > 0:
+            days_active += 1
+        if is_full:
+            full_days += 1
+        per_day.append({"date": date_str, "items": items, "count": count, "is_full": is_full})
+
+    return {
+        "email": email,
+        "window_days": window_days,
+        "days_active": days_active,
+        "full_days": full_days,
+        "per_day": per_day,
+    }
+
+
+@router.get("/qualified-testers")
+async def qualified_testers(
+    request: Request,
+    key: Optional[str] = Query(default=None),
+    min_full_days: int = Query(default=10, ge=1, le=90),
+    window_days: int = Query(default=14, ge=1, le=90),
+):
+    """
+    Admin: list testers who have completed all 6 checklist items on at least
+    `min_full_days` different days within the last `window_days`.
+    """
+    await _admin_ok(request, key)
+
+    today = datetime.now(timezone.utc).date()
+    start = today.toordinal() - (window_days - 1)
+    dates_in_window = [
+        datetime.fromordinal(start + i).strftime("%Y-%m-%d")
+        for i in range(window_days)
+    ]
+    total_items = len(VALID_CHECKLIST_ITEMS)
+
+    # Aggregate: per (email, date) count distinct item_ids; then group by email
+    pipeline = [
+        {"$match": {"date": {"$in": dates_in_window}}},
+        {"$group": {
+            "_id": {"email": "$email", "date": "$date"},
+            "items": {"$addToSet": "$item_id"},
+        }},
+        {"$project": {
+            "email": "$_id.email",
+            "date": "$_id.date",
+            "items_count": {"$size": "$items"},
+            "is_full_day": {"$eq": [{"$size": "$items"}, total_items]},
+        }},
+        {"$group": {
+            "_id": "$email",
+            "days_active": {"$sum": 1},
+            "full_days": {"$sum": {"$cond": ["$is_full_day", 1, 0]}},
+            "total_item_completions": {"$sum": "$items_count"},
+        }},
+        {"$sort": {"full_days": -1, "days_active": -1}},
+    ]
+
+    all_testers = []
+    async for row in db.beta_tester_activity.aggregate(pipeline):
+        all_testers.append({
+            "email": row["_id"],
+            "days_active": row["days_active"],
+            "full_days": row["full_days"],
+            "total_item_completions": row["total_item_completions"],
+            "qualified": row["full_days"] >= min_full_days,
+        })
+
+    qualified = [t for t in all_testers if t["qualified"]]
+    return {
+        "window_days": window_days,
+        "min_full_days": min_full_days,
+        "total_testers_active": len(all_testers),
+        "qualified_count": len(qualified),
+        "qualified": qualified,
+        "all_testers": all_testers,
+    }
 
 
 # ---------- Admin endpoints --------------------------------------------------
