@@ -118,6 +118,31 @@ async def root():
             "withdrawal": "/api/withdrawal",
             "referrals": "/api/referrals",
             "stats": "/api/stats",
+            "beta": "/api/beta",
             "health": "/api/health"
         }
     }
+
+
+# ---------------------------------------------------------------------------
+# Frontend page redirects
+# ---------------------------------------------------------------------------
+# This backend service is API-only. The React frontend (including the /beta
+# portal) is hosted separately. Configure FRONTEND_URL env var on Render so
+# these redirects point to the production frontend host (Vercel/Netlify/
+# Render Static Site). Falls back to the Emergent preview URL as a bridge
+# during the closed beta so tester links keep working.
+from fastapi.responses import RedirectResponse
+
+_FRONTEND_ORIGIN = os.environ.get(
+    "FRONTEND_URL",
+    "https://vara-landing-v1.preview.emergentagent.com",
+)
+
+
+@app.get("/beta")
+async def beta_page_redirect():
+    return RedirectResponse(
+        url=f"{_FRONTEND_ORIGIN.rstrip('/')}/beta",
+        status_code=302,
+    )
