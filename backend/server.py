@@ -21,10 +21,9 @@ from routes.stats import router as stats_router
 from routes.users import router as users_router
 from routes.legal import router as legal_router
 from routes.offerwall import router as offerwall_router
-from routes.dev_sync import router as dev_sync_router
 from routes.admin import router as admin_router
+from routes.dev_sync import router as dev_sync_router
 from routes.beta import router as beta_router
-
 # Import seed functions
 from utils.seed import seed_admin, seed_tasks
 from utils.notification_scheduler import start_scheduler
@@ -47,10 +46,9 @@ app.include_router(stats_router)
 app.include_router(users_router)
 app.include_router(legal_router)
 app.include_router(offerwall_router)
-app.include_router(dev_sync_router)
 app.include_router(admin_router)
+app.include_router(dev_sync_router)
 app.include_router(beta_router)
-
 # CORS - use frontend URL from env
 frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 app.add_middleware(
@@ -122,27 +120,3 @@ async def root():
             "health": "/api/health"
         }
     }
-
-
-# ---------------------------------------------------------------------------
-# Frontend page redirects
-# ---------------------------------------------------------------------------
-# This backend service is API-only. The React frontend (including the /beta
-# portal) is hosted separately. Configure FRONTEND_URL env var on Render so
-# these redirects point to the production frontend host (Vercel/Netlify/
-# Render Static Site). Falls back to the Emergent preview URL as a bridge
-# during the closed beta so tester links keep working.
-from fastapi.responses import RedirectResponse
-
-_FRONTEND_ORIGIN = os.environ.get(
-    "FRONTEND_URL",
-    "https://vara-landing-v1.preview.emergentagent.com",
-)
-
-
-@app.get("/beta")
-async def beta_page_redirect():
-    return RedirectResponse(
-        url=f"{_FRONTEND_ORIGIN.rstrip('/')}/beta",
-        status_code=302,
-    )
