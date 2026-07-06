@@ -116,6 +116,7 @@ async def root():
             "withdrawal": "/api/withdrawal",
             "referrals": "/api/referrals",
             "stats": "/api/stats",
+            "beta": "/api/beta",
             "health": "/api/health"
         }
     }
