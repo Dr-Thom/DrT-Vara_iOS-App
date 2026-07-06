@@ -23,7 +23,15 @@ Build a landing page for VARA - an app where users can earn USD from their phone
    - Needs: Transparency, good user experience, immediate rewards
 
 ## What's Been Implemented
-### 🎯 SAMSON Beta Operations Center (Jul 6, 2026)
+### 🏆 Tester Activity Tracking (Jul 6, 2026)
+- Added `POST /api/beta/tester-activity` (public, idempotent upsert) — logs {email, item_id, date} to `beta_tester_activity` collection.
+- Added `GET /api/beta/tester-activity/me?email=<x>&window_days=14` — public, returns per-day activity summary (`days_active`, `full_days`, `per_day[]`).
+- Added `GET /api/beta/qualified-testers?min_full_days=10&window_days=14` (admin-only) — aggregation returns testers who completed all 6 checklist items on `min_full_days`+ different days. Enables auto-generating the $100 bonus payout list at day 14.
+- **Frontend**: `/beta` Daily Checklist now prompts once for tester email (stored in localStorage `samson_beta_tester_email`), then POSTs to `/tester-activity` on each check (not uncheck). Non-blocking — checklist state saves locally even if the API call fails.
+- **Tests**: iteration_11.json — 14/14 backend + 7/7 frontend PASS. File: `/app/backend/tests/test_beta_tester_activity.py`.
+- **Note**: `?min_full_days` is capped at 90 (Pydantic validator); 999 returns 422.
+
+
 - Public portal at `/beta` for closed beta testers (Nigeria + Philippines). No auth required for submissions.
 - **Sections**: Hero (v1.0.13, Build 19, Closed Beta Active), Beta Instructions, Daily Checklist (6 items, localStorage-persisted, resets daily), Bug Report Form, Suggestion Form, Known Issues, $100 USD Launch Bonus reward, FAQ (6 items), Contact (support@samsonusd.com).
 - **Backend endpoints** (`/app/backend/routes/beta.py`):
