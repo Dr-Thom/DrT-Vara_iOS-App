@@ -33,13 +33,9 @@
         "backgroundColor": "#1E3A8A"
       },
       "package": "com.vara.app",
-      "versionCode": 17,
+      "versionCode": 14,
       "googleServicesFile": "./google-services.json",
-      "permissions": [
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "POST_NOTIFICATIONS"
-      ]
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE", "POST_NOTIFICATIONS"]
     },
     "plugins": [
       [

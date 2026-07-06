@@ -37,8 +37,8 @@ db = client[os.environ.get('DB_NAME', 'vara_db')]
 
 class PushTokenPayload(BaseModel):
     push_token: str
-    platform: str | None = None  # "android" | "ios"
-    timezone: str | None = None  # IANA tz, e.g. "Asia/Manila"
+    platform: str | None = None
+    timezone: str | None = None
 
 
 @router.post("/push-token")
@@ -46,7 +46,6 @@ async def register_push_token(
     payload: PushTokenPayload,
     current_user: dict = Depends(get_current_user),
 ):
-    """Register/update an Expo push token for the authenticated user."""
     if not is_valid_expo_token(payload.push_token):
         raise HTTPException(status_code=400, detail="Invalid Expo push token format")
 
@@ -69,7 +68,6 @@ async def register_push_token(
 
 @router.delete("/push-token")
 async def unregister_push_token(current_user: dict = Depends(get_current_user)):
-    """Remove the user's push token (called on logout)."""
     await db.users.update_one(
         {"_id": ObjectId(current_user["_id"])},
         {"$unset": {"push_token": "", "push_token_platform": ""}},
@@ -78,14 +76,13 @@ async def unregister_push_token(current_user: dict = Depends(get_current_user)):
 
 
 class AdRewardPayload(BaseModel):
-    network: str | None = None  # "admob"
-    amount: int | None = None   # Network-reported reward amount (informational)
+    network: str | None = None
+    amount: int | None = None
 
 
-# Anti-fraud caps for the rewarded-video bonus.
-REWARDED_BONUS_AMOUNT = 0.05            # $0.05 per ad
-REWARDED_DAILY_CAP = 20                  # max 20 ads/user/day → $1.00 ceiling
-REWARDED_MIN_INTERVAL_SECS = 25          # avoid double-credit if user spams the button
+REWARDED_BONUS_AMOUNT = 0.05
+REWARDED_DAILY_CAP = 20
+REWARDED_MIN_INTERVAL_SECS = 25
 
 
 @router.post("/ad-reward")
@@ -93,15 +90,10 @@ async def claim_ad_reward(
     payload: AdRewardPayload,
     current_user: dict = Depends(get_current_user),
 ):
-    """Credit the user $0.05 for watching a rewarded video ad.
-
-    Server-enforced caps: 20/day per user, 25s minimum between credits.
-    """
     user_id = ObjectId(current_user["_id"])
     now = datetime.utcnow()
     today_start = datetime(now.year, now.month, now.day)
 
-    # Daily cap check
     daily_count = await db.ad_rewards.count_documents({
         "user_id": str(user_id),
         "created_at": {"$gte": today_start},
@@ -112,7 +104,6 @@ async def claim_ad_reward(
             detail=f"Daily rewarded-ad limit reached ({REWARDED_DAILY_CAP}/day). Come back tomorrow!",
         )
 
-    # Throttle: no double-credit within 25 seconds
     latest = await db.ad_rewards.find_one(
         {"user_id": str(user_id)},
         sort=[("created_at", -1)],
@@ -123,7 +114,6 @@ async def claim_ad_reward(
             detail="Please wait a few seconds before claiming another reward.",
         )
 
-    # Credit the user
     await db.users.update_one(
         {"_id": user_id},
         {"$inc": {
@@ -133,7 +123,6 @@ async def claim_ad_reward(
         }},
     )
 
-    # Audit ledger
     await db.ad_rewards.insert_one({
         "user_id": str(user_id),
         "amount": REWARDED_BONUS_AMOUNT,
@@ -190,11 +179,7 @@ async def get_my_stats(current_user: dict = Depends(get_current_user)):
 
 @router.get("/me/dashboard")
 async def get_dashboard(current_user: dict = Depends(get_current_user)):
-    """Single endpoint returning all data needed for the new dashboard.
-
-    Spec-aligned response with cards: balance, today's earnings, next bonus,
-    super bonus, daily goal, streak, account status, referrals progress.
-    """
+    """Returns all data for the new dashboard cards."""
     user = await db.users.find_one({"_id": ObjectId(current_user["_id"])})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -204,13 +189,11 @@ async def get_dashboard(current_user: dict = Depends(get_current_user)):
     streak = user.get("current_streak", 0)
     trust = user.get("trust_score", 50)
 
-    # Balance & cash-out
     available_balance = round(user.get("earnings", 0.0), 2)
     lifetime_earnings = round(user.get("total_earned", 0.0), 2)
     total_withdrawn = round(user.get("total_withdrawn", 0.0), 2)
     next_cash_out_remaining = round(max(0.0, MIN_CASH_OUT - available_balance), 2)
 
-    # Today's earnings — reset to 0 if daily_earnings_date is not today
     now = datetime.utcnow()
     today = datetime(now.year, now.month, now.day)
     daily_date = user.get("daily_earnings_date")
@@ -221,19 +204,15 @@ async def get_dashboard(current_user: dict = Depends(get_current_user)):
         todays_earnings = 0.0
         todays_tasks = 0
 
-    # Bonus progress (within current 5-task cycle)
     bonus = next_bonus_milestone(tasks_completed)
     super_bonus = next_super_bonus_milestone(tasks_completed)
 
-    # Streak & tomorrow's multiplier (streak+1 if completed at least 1 task today, else streak)
     tomorrows_streak = streak + 1 if todays_tasks == 0 else streak
     tomorrows_multiplier = streak_multiplier(tomorrows_streak)
 
-    # Account status
-    account_verified = bool(user.get("email"))  # If they have email + account, they're verified
+    account_verified = bool(user.get("email"))
     instant_cashout = trust >= 75
 
-    # Referrals: count of QUALIFIED referrals (referred users who completed at least 1 task)
     qualified_referrals = await db.users.count_documents({
         "referred_by_user_id": str(user_id),
         "tasks_completed": {"$gte": 1},
@@ -241,7 +220,6 @@ async def get_dashboard(current_user: dict = Depends(get_current_user)):
     referrals_complete = qualified_referrals >= REFERRAL_GOAL
     referral_bonus_paid = bool(user.get("referral_goal_bonus_paid", False))
 
-    # Award the $10 referral bonus if not already paid
     if referrals_complete and not referral_bonus_paid:
         await db.users.update_one(
             {"_id": user_id},
