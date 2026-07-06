@@ -23,6 +23,47 @@ Build a landing page for VARA - an app where users can earn USD from their phone
    - Needs: Transparency, good user experience, immediate rewards
 
 ## What's Been Implemented
+### 🏆 Tester Activity Tracking (Jul 6, 2026)
+- Added `POST /api/beta/tester-activity` (public, idempotent upsert) — logs {email, item_id, date} to `beta_tester_activity` collection.
+- Added `GET /api/beta/tester-activity/me?email=<x>&window_days=14` — public, returns per-day activity summary (`days_active`, `full_days`, `per_day[]`).
+- Added `GET /api/beta/qualified-testers?min_full_days=10&window_days=14` (admin-only) — aggregation returns testers who completed all 6 checklist items on `min_full_days`+ different days. Enables auto-generating the $100 bonus payout list at day 14.
+- **Frontend**: `/beta` Daily Checklist now prompts once for tester email (stored in localStorage `samson_beta_tester_email`), then POSTs to `/tester-activity` on each check (not uncheck). Non-blocking — checklist state saves locally even if the API call fails.
+- **Tests**: iteration_11.json — 14/14 backend + 7/7 frontend PASS. File: `/app/backend/tests/test_beta_tester_activity.py`.
+- **Note**: `?min_full_days` is capped at 90 (Pydantic validator); 999 returns 422.
+
+
+- Public portal at `/beta` for closed beta testers (Nigeria + Philippines). No auth required for submissions.
+- **Sections**: Hero (v1.0.13, Build 19, Closed Beta Active), Beta Instructions, Daily Checklist (6 items, localStorage-persisted, resets daily), Bug Report Form, Suggestion Form, Known Issues, $100 USD Launch Bonus reward, FAQ (6 items), Contact (support@samsonusd.com).
+- **Backend endpoints** (`/app/backend/routes/beta.py`):
+  - `POST /api/beta/bug-reports` — public, stores in `beta_bug_reports` collection with timestamp + IP
+  - `POST /api/beta/suggestions` — public, stores in `beta_suggestions` collection
+  - `GET /api/beta/counts` — admin-only (JWT or `?key=BETA_EXPORT_KEY`)
+  - `GET /api/beta/export.csv?kind=bugs|suggestions|all` — admin CSV export
+- **Brand palette**: deep blue #0B2A5B, royal #1E4FBF, navy #082047, light gray #F5F7FB, green #16A34A.
+- **Env vars** (frontend/.env, currently `#`): `REACT_APP_PLAY_STORE_URL`, `REACT_APP_BETA_GUIDE_URL`, `REACT_APP_FEEDBACK_FORM_URL` — set to real URLs when available.
+- **Tests**: iteration_10.json — 13/13 backend + 100% frontend PASS. Test file: `/app/backend/tests/test_beta.py`.
+- **Files**: `/app/backend/routes/beta.py`, `/app/frontend/src/pages/BetaOps.jsx`, `/app/frontend/src/App.js` (route), `/app/frontend/.env` (env vars).
+
+
+### 🌱 SAMSON Beta Tasks Seed (Jul 3, 2026)
+- Added `POST /api/admin/seed-beta-tasks` (admin-only, idempotent, supports `?replace=true`) and standalone `python -m scripts.seed_beta_tasks [--replace]` script.
+- Seeds exactly 5 beta tasks with a `beta: true` marker in DB:
+  1. Complete Profile Check — $0.10 (data_entry)
+  2. Watch Rewarded Video — $0.05 (video)
+  3. Visit Offers Screen — $0.10 (data_entry)
+  4. Review Withdrawal Screen — $0.10 (data_entry)
+  5. Submit Beta Feedback — $1.00 (survey)
+- Also `GET /api/admin/beta-tasks` for admin diagnostic listing.
+- Tests: /app/backend/tests/test_beta_tasks_seed.py — 9/9 backend tests pass (testing_agent iteration_8).
+- Files: /app/backend/routes/admin.py, /app/backend/scripts/seed_beta_tasks.py, /app/backend/server.py.
+
+### 🔧 Mobile Source Sync Endpoint (Jul 3, 2026) — Local repo contamination workaround
+- User's iMac local repo accumulated AI instruction text (emojis, GitHub URLs, markdown, merge markers) inside multiple JS files, blocking EAS bundling.
+- Added `GET /api/dev/mobile-tarball` (Emergent preview backend only, NOT deployed to Render) that returns a fresh tarball of clean /app/mobile source files (24 JS + 3 config = 31 files, ~33 KB).
+- One-line sync command for iMac: `curl -fsSL <preview-url>/api/dev/mobile-tarball -o /tmp/clean.tar.gz && tar -xzf /tmp/clean.tar.gz`
+- Files: /app/backend/routes/dev_sync.py.
+
+
 ### 🛠 Mobile Build Fix (May 4, 2026) — OTA Update Crash
 - Problem: APK launched with red `Uncaught Error: java.io.IOException: Failed to download remote update`. The OTA fetch was failing because no JS bundle was published to the `preview` channel.
 - Fix: Disabled Expo OTA in `/app/mobile/app.json` (`updates.enabled: false`, `checkAutomatically: NEVER`, `runtimeVersion.policy: appVersion`). Bundle is now fully embedded in the APK.

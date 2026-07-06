@@ -28,6 +28,7 @@ import Tasks from './pages/Tasks';
 import Withdrawal from './pages/Withdrawal';
 import Calculator from './pages/Calculator';
 import Referrals from './pages/Referrals';
+import BetaOps from './pages/BetaOps';
 
 const LandingPage = () => {
   return (
@@ -58,6 +59,9 @@ function App() {
           <Routes>
             {/* Landing Page */}
             <Route path="/" element={<LandingPage />} />
+
+            {/* SAMSON Beta Operations Center (public, no auth) */}
+            <Route path="/beta" element={<BetaOps />} />
             
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
