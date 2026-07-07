@@ -87,16 +87,51 @@ REWARDED_BONUS_AMOUNT = 0.05            # $0.05 per ad
 REWARDED_DAILY_CAP = 20                  # max 20 ads/user/day → $1.00 ceiling
 REWARDED_MIN_INTERVAL_SECS = 25          # avoid double-credit if user spams the button
 
+# Compliance kill-switch — set REWARDED_ADS_ENABLED=true on Render only when
+# the app is out of Closed Testing AND AdMob has approved a compliant reward
+# model (i.e. rewarded ads no longer credit withdrawable cash).
+#
+# Google AdMob policy prohibits crediting rewarded ads with real-world
+# compensation (cash, cash-equivalents, gift cards, crypto). Because the
+# `earnings` field on the User document is the same balance used for cash
+# withdrawal, crediting it from a rewarded ad is a policy violation.
+# Default: disabled.
+REWARDED_ADS_ENABLED = os.environ.get("REWARDED_ADS_ENABLED", "false").lower() == "true"
+
+logger.info(
+    f"[SAMSON compliance] REWARDED_ADS_ENABLED={REWARDED_ADS_ENABLED} "
+    f"(reward endpoint {'ACTIVE' if REWARDED_ADS_ENABLED else 'DISABLED - returns 410 Gone'})"
+)
+
 
 @router.post("/ad-reward")
 async def claim_ad_reward(
     payload: AdRewardPayload,
     current_user: dict = Depends(get_current_user),
 ):
-    """Credit the user $0.05 for watching a rewarded video ad.
+    """Credit the user for watching a rewarded video ad.
 
-    Server-enforced caps: 20/day per user, 25s minimum between credits.
+    Guarded by REWARDED_ADS_ENABLED compliance kill-switch. While disabled
+    (default), returns HTTP 410 Gone with a clear AdMob-policy message so
+    the mobile client can render the correct state.
+
+    Server-enforced caps when enabled: 20/day per user, 25s minimum between
+    credits.
     """
+    if not REWARDED_ADS_ENABLED:
+        logger.info(
+            f"ad-reward rejected (compliance): user={current_user.get('email')} "
+            f"network={payload.network!r}"
+        )
+        raise HTTPException(
+            status_code=410,
+            detail=(
+                "Rewarded ad crediting is temporarily disabled to comply with "
+                "Google AdMob's incentivized-traffic policy. No cash reward will "
+                "be credited for this ad view."
+            ),
+        )
+
     user_id = ObjectId(current_user["_id"])
     now = datetime.utcnow()
     today_start = datetime(now.year, now.month, now.day)

@@ -1,0 +1,35 @@
+{
+  "summary": "SAMSON compliance kill-switch tested. Core fix works perfectly: /api/users/ad-reward returns HTTP 410 with AdMob+policy message, does not credit earnings, does not insert into ad_rewards collection, and 401 is returned before 410 for unauthenticated requests. All regression endpoints (dashboard, tasks, withdrawal, beta bug-reports) still function. 9/10 tests pass; the only failure is a minor observability issue — the module-load-time '[SAMSON compliance] REWARDED_ADS_ENABLED=False' logger.info line does not appear in supervisor backend logs because it executes at import time before uvicorn configures the logging handlers. The runtime compliance-rejection log (per request) IS emitted correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "startup log",
+        "issue": "The module-level logger.info(\"[SAMSON compliance] REWARDED_ADS_ENABLED=...\") in /app/backend/routes/users.py (line 101) executes during module import — before uvicorn's logging handlers are attached — so the line never reaches supervisor stdout/stderr. Functional behavior is unaffected; runtime request logs work. Fix suggestion: move the log line into an @app.on_event('startup') handler in server.py or call it from a router startup event."
+      }
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_samson_compliance.py",
+    "/app/test_reports/pytest/pytest_samson_compliance.xml"
+  ],
+  "action_items": [
+    "Optional: relocate '[SAMSON compliance] REWARDED_ADS_ENABLED=...' logger.info from module scope to a FastAPI startup event so it appears in supervisor logs (currently lost because it runs before uvicorn logging is configured)."
+  ],
+  "critical_code_review_comments": [
+    "Kill-switch implementation is clean: env-var driven, default-deny, auth-first, single well-scoped branch that both raises 410 and logs the rejection. No DB writes reachable in disabled path — verified.",
+    "410 detail message correctly names 'AdMob' and 'policy' — good for client UX and audit trail.",
+    "Consider adding a lightweight unit test around REWARDED_ADS_ENABLED parsing (values 'true'/'True'/'1'/'') for future safety, though the current .lower()=='true' is sound."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_samson_compliance.py"
+  ],
+  "success_rate": {"backend": "90% (9/10 — 1 non-functional log-timing failure)", "frontend": "N/A (backend only)"},
+  "test_credentials": "admin@vara.com / vara_admin_2026",
+  "seed_data_creation": "None. Created 1 beta bug-report row (TEST_ prefixed title) as part of regression. Admin earnings untouched (per instructions).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend URL: https://vara-landing-v1.preview.emergentagent.com. Compliance kill-switch is DISABLED by default (REWARDED_ADS_ENABLED unset). All 5 compliance assertions pass. If main agent moves the startup log into an on_event('startup'), re-run test_startup_log_emits_samson_compliance_line after restart.",
+  "rca of the issue": "Startup log missing: `logger.info(...)` is invoked at module-import time (line 101 of routes/users.py). At that moment, uvicorn has not yet installed its logging handlers on the root logger, so the record is dropped (or written to a default handler that supervisor is not capturing). Later request-time logger.info calls from the same module DO appear (see 'ad-reward rejected (compliance)' log at 16:29:40), which confirms the logger itself is fine — only the import-time write is lost. Mitigation: emit the marker from a FastAPI @app.on_event('startup') hook in server.py."
+}
