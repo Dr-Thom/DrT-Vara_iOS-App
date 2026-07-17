@@ -47,19 +47,65 @@ const SignupScreen = ({ navigation }) => {
   }, [referralCode]);
 
   const handleSignup = async () => {
-    if (!email || !password || !name) {
-      Alert.alert('Error', 'Please fill in all fields');
+    // Trim inputs before validation
+    const trimmedEmail = (email || '').trim().toLowerCase();
+    const trimmedName = (name || '').trim();
+    const trimmedReferral = (referralCode || '').trim().toUpperCase();
+
+    if (!trimmedEmail || !password || !trimmedName) {
+      Alert.alert('Missing info', 'Please fill in your name, email, and password.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      Alert.alert('Invalid email', 'Please enter a valid email address.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert('Weak password', 'Password must be at least 6 characters.');
       return;
     }
     setLoading(true);
     try {
-      await register(email.toLowerCase(), password, name, referralCode);
+      await register(trimmedEmail, password, trimmedName, trimmedReferral);
     } catch (error) {
-      Alert.alert('Signup Failed', error.response?.data?.detail || 'Registration failed');
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log('[SignupScreen] register error:', {
+          message: error?.message,
+          responseDetail: error?.response?.data?.detail,
+          status: error?.response?.status,
+        });
+      }
+      // safeAuth throws plain `Error(message)`; axios throws with `response.data.detail`.
+      // Read message first, fall back to axios shape, then generic.
+      const raw =
+        (typeof error?.message === 'string' && error.message) ||
+        (typeof error?.response?.data?.detail === 'string' && error.response.data.detail) ||
+        '';
+      const rawLower = raw.toLowerCase();
+
+      // Map known backend/network errors to user-safe copy.
+      let title = 'Signup Failed';
+      let message = raw || 'Registration failed. Please try again.';
+
+      if (rawLower.includes('already registered') || rawLower.includes('already exists')) {
+        title = 'Account exists';
+        message = 'This email already has an account. Please tap Log In.';
+      } else if (rawLower.includes('valid email') || rawLower.includes('@-sign')) {
+        title = 'Invalid email';
+        message = 'Please enter a valid email address.';
+      } else if (rawLower.includes('password') && rawLower.includes('6')) {
+        title = 'Weak password';
+        message = 'Password must be at least 6 characters.';
+      } else if (rawLower.includes('cannot reach') || rawLower.includes('network')) {
+        title = 'Connection problem';
+        message = 'Please check your internet connection and try again.';
+      } else if (rawLower.includes('server returned 5')) {
+        title = 'Server error';
+        message = 'Signup is temporarily unavailable. Please send your tester email to support@samsonusd.com.';
+      }
+
+      Alert.alert(title, message);
     } finally {
       setLoading(false);
     }

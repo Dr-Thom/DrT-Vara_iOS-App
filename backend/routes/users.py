@@ -84,6 +84,30 @@ REWARDED_BONUS_AMOUNT = 0.05
 REWARDED_DAILY_CAP = 20
 REWARDED_MIN_INTERVAL_SECS = 25
 
+# Compliance kill-switch — set REWARDED_ADS_ENABLED=true on Render only when
+# the app is out of Closed Testing AND AdMob has approved a compliant reward
+# model (i.e. rewarded ads no longer credit withdrawable cash).
+#
+# Google AdMob policy prohibits crediting rewarded ads with real-world
+# compensation (cash, cash-equivalents, gift cards, crypto). Because the
+# `earnings` field on the User document is the same balance used for cash
+# withdrawal, crediting it from a rewarded ad is a policy violation.
+# Default: disabled.
+REWARDED_ADS_ENABLED = os.environ.get("REWARDED_ADS_ENABLED", "false").lower() == "true"
+
+
+def log_ad_reward_compliance_state() -> None:
+    """Emit the compliance kill-switch state to the app log.
+
+    Called from server.py's @app.on_event('startup') so it lands in Render/
+    supervisor logs (module-import-time logging is dropped before uvicorn
+    installs its handlers).
+    """
+    logger.info(
+        f"[SAMSON compliance] REWARDED_ADS_ENABLED={REWARDED_ADS_ENABLED} "
+        f"(reward endpoint {'ACTIVE' if REWARDED_ADS_ENABLED else 'DISABLED - returns 410 Gone'})"
+    )
+
 
 @router.post("/ad-reward")
 async def claim_ad_reward(
