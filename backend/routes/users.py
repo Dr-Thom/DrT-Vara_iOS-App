@@ -98,10 +98,18 @@ REWARDED_MIN_INTERVAL_SECS = 25          # avoid double-credit if user spams the
 # Default: disabled.
 REWARDED_ADS_ENABLED = os.environ.get("REWARDED_ADS_ENABLED", "false").lower() == "true"
 
-logger.info(
-    f"[SAMSON compliance] REWARDED_ADS_ENABLED={REWARDED_ADS_ENABLED} "
-    f"(reward endpoint {'ACTIVE' if REWARDED_ADS_ENABLED else 'DISABLED - returns 410 Gone'})"
-)
+
+def log_ad_reward_compliance_state() -> None:
+    """Emit the compliance kill-switch state to the app log.
+
+    Called from server.py's @app.on_event('startup') so it lands in Render/
+    supervisor logs (module-import-time logging is dropped before uvicorn
+    installs its handlers).
+    """
+    logger.info(
+        f"[SAMSON compliance] REWARDED_ADS_ENABLED={REWARDED_ADS_ENABLED} "
+        f"(reward endpoint {'ACTIVE' if REWARDED_ADS_ENABLED else 'DISABLED - returns 410 Gone'})"
+    )
 
 
 @router.post("/ad-reward")

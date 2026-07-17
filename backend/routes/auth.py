@@ -48,60 +48,76 @@ async def get_current_user(request: Request) -> dict:
 @router.post("/register")
 async def register(user_data: UserCreate, response: Response):
     """Register new user"""
+    # Defensive server-side normalization so the same account can't be created
+    # twice via slight whitespace / casing differences from a legacy mobile
+    # build that skipped client-side trimming.
+    email = (user_data.email or "").strip().lower()
+    name_clean = (user_data.name or "").strip() or email.split('@')[0]
+    ref_code_raw = (user_data.referral_code or "").strip().upper()
+
+    def _log(status: int, reason: str) -> None:
+        # Safe log: no password, only sanitized email + reason code.
+        logger.info(
+            f"auth.register endpoint=/api/auth/register status={status} "
+            f"email={email!r} reason={reason!r}"
+        )
+
     try:
-        # Normalize email
-        email = user_data.email.lower()
-        
         # Check if user already exists
         existing = await db.users.find_one({"email": email})
         if existing:
+            _log(400, "email_already_registered")
             raise HTTPException(status_code=400, detail="Email already registered")
-        
+
         # Hash password
         password_hash = hash_password(user_data.password)
-        
-        # Resolve referrer (if a referral code was provided)
+
+        # Resolve referrer (if a referral code was provided).
+        # Beta rule: NEVER block signup on a bad referral code — silently ignore.
         referred_by_code = None
         referred_by_user_id = None
-        if user_data.referral_code:
-            code = user_data.referral_code.strip().upper()
-            referrer = await db.users.find_one({"referral_code": code})
+        if ref_code_raw:
+            referrer = await db.users.find_one({"referral_code": ref_code_raw})
             if referrer:
-                referred_by_code = code
+                referred_by_code = ref_code_raw
                 referred_by_user_id = str(referrer["_id"])
-            # Silently ignore invalid codes instead of erroring (better UX)
-        
+            else:
+                logger.info(
+                    f"auth.register: referral_code={ref_code_raw!r} not found — "
+                    f"proceeding without referrer (email={email!r})"
+                )
+
         # Generate a unique referral code for this new user
         new_referral_code = generate_referral_code()
         # Ensure uniqueness (collisions are extremely rare but handle them)
         while await db.users.find_one({"referral_code": new_referral_code}):
             new_referral_code = generate_referral_code()
-        
+
         # Create user document
         user_doc = UserDB(
             email=email,
             password_hash=password_hash,
-            name=user_data.name or email.split('@')[0],
+            name=name_clean,
             referral_code=new_referral_code,
             referred_by=referred_by_code,
             referred_by_user_id=referred_by_user_id,
         )
-        
+
         # Insert into database
         result = await db.users.insert_one(user_doc.model_dump())
         user_id = str(result.inserted_id)
-        
+
         # Increment referrer's referred_count
         if referred_by_user_id:
             await db.users.update_one(
                 {"_id": ObjectId(referred_by_user_id)},
                 {"$inc": {"referred_count": 1}}
             )
-        
+
         # Create tokens
         access_token = create_access_token(user_id, email)
         refresh_token = create_refresh_token(user_id)
-        
+
         # Set httpOnly cookies
         # Use secure cookies in production/preview (HTTPS), insecure only in local development
         is_secure = os.environ.get('ENVIRONMENT', 'production') != 'development'
@@ -126,6 +142,7 @@ async def register(user_data: UserCreate, response: Response):
         )
         
         logger.info(f"New user registered: {email}" + (f" (referred by {referred_by_code})" if referred_by_code else ""))
+        _log(200, "created" + (":referred" if referred_by_code else ""))
         
         return {
             "_id": user_id,
@@ -153,7 +170,8 @@ async def register(user_data: UserCreate, response: Response):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Registration error: {str(e)}")
+        _log(500, f"unhandled:{type(e).__name__}")
+        logger.exception(f"Registration error for email={email!r}: {e}")
         raise HTTPException(status_code=500, detail="Registration failed")
 
 @router.post("/login")
